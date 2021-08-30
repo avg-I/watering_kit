@@ -186,8 +186,7 @@ void loop()
   set_controls();
 
   int button_state = digitalRead(button);
-  if (button_state == 1)
-  {
+  if (button_state == 1) {
     unsigned long nowMillis = millis();
     if (force_screen_refresh || nowMillis - last_refresh > screenRefreshPeriod) {
       force_screen_refresh = false;
@@ -321,16 +320,13 @@ void drawtime(void)
 {
   int x = 5;
   //Serial.print(cur_time.year(), DEC);
-  if (!RTC.isrunning() || rtc_reset)
-  {
+  if (!RTC.isrunning() || rtc_reset) {
     u8g.setFont(u8g_font_6x10);
     u8g.setPrintPos(5, 20);
     u8g.print("RTC is NOT running!");
     RTC.adjust(DateTime(__DATE__, __TIME__));
     rtc_reset = false;
-  }
-  else
-  {
+  } else {
     DateTime cur_time = RTC.now();
 
     u8g.setFont(u8g_font_7x13);
@@ -387,8 +383,9 @@ void drawLogo(uint8_t d)
   u8g.drawStr(100 + d, 30 + d, "w");
 }
 
-
-//Style the flowers     bitmap_bad: bad flowers     bitmap_good:good  flowers
+// Style the flowers:
+// bitmap_bad: bad flowers,
+// bitmap_good:good  flowers
 void drawflower(void)
 {
   int moisture1_value = flowers[0].moisture_cur;
@@ -396,55 +393,35 @@ void drawflower(void)
   int moisture3_value = flowers[2].moisture_cur;
   int moisture4_value = flowers[3].moisture_cur;
 
-  if (flowers[0].faulted)
-  {
+  if (flowers[0].faulted) {
     // nothing
-  }
-  else if (moisture1_value < 30)
-  {
+  } else if (moisture1_value < 30) {
     u8g.drawXBMP(0, 0, 32, 30, bitmap_bad);
-  }
-  else
-  {
+  } else {
     u8g.drawXBMP(0, 0, 32, 30, bitmap_good);
   }
 
-  if (flowers[1].faulted)
-  {
+  if (flowers[1].faulted) {
     // nothing
-  }
-  else if (moisture2_value < 30)
-  {
+  } else if (moisture2_value < 30) {
     u8g.drawXBMP(32, 0, 32, 30, bitmap_bad);
-  }
-  else
-  {
+  } else {
     u8g.drawXBMP(32, 0, 32, 30, bitmap_good);
   }
 
-  if (flowers[2].faulted)
-  {
+  if (flowers[2].faulted) {
     // nothing
-  }
-  else if (moisture3_value < 30)
-  {
+  } else if (moisture3_value < 30) {
     u8g.drawXBMP(64, 0, 32, 30, bitmap_bad);
-  }
-  else
-  {
+  } else {
     u8g.drawXBMP(64, 0, 32, 30, bitmap_good);
   }
 
-  if (flowers[3].faulted)
-  {
+  if (flowers[3].faulted) {
     // nothing
-  }
-  else if (moisture4_value < 30)
-  {
+  } else if (moisture4_value < 30) {
     u8g.drawXBMP(96, 0, 32, 30, bitmap_bad);
-  }
-  else
-  {
+  } else {
     u8g.drawXBMP(96, 0, 32, 30, bitmap_good);
   }
 }
@@ -473,16 +450,11 @@ void drawTH(void)
 
   u8g.setPrintPos(9, 60);
   u8g.print("A0");
-  if (moisture1_value < 10)
-  {
+  if (moisture1_value < 10) {
     u8g.drawStr(A + 14, 45, moisture1_value_temp);
-  }
-  else if (moisture1_value < 100)
-  {
+  } else if (moisture1_value < 100) {
     u8g.drawStr(A + 7, 45, moisture1_value_temp);
-  }
-  else
-  {
+  } else {
     u8g.drawStr(A + 2, 45, moisture1_value_temp);
   }
   u8g.setPrintPos(A + 23, 45 );
@@ -490,16 +462,11 @@ void drawTH(void)
 
   u8g.setPrintPos(41, 60 );
   u8g.print("A1");
-  if (moisture2_value < 10)
-  {
+  if (moisture2_value < 10) {
     u8g.drawStr(B + 14, 45, moisture2_value_temp);
-  }
-  else if (moisture2_value < 100)
-  {
+  } else if (moisture2_value < 100) {
     u8g.drawStr(B + 7, 45, moisture2_value_temp);
-  }
-  else
-  {
+  } else {
     u8g.drawStr(B + 2, 45, moisture2_value_temp);
   }
   u8g.setPrintPos(B + 23, 45);
@@ -507,16 +474,11 @@ void drawTH(void)
 
   u8g.setPrintPos(73, 60);
   u8g.print("A2");
-  if (moisture3_value < 10)
-  {
+  if (moisture3_value < 10) {
     u8g.drawStr(C + 14, 45, moisture3_value_temp);
-  }
-  else if (moisture3_value < 100)
-  {
+  } else if (moisture3_value < 100) {
     u8g.drawStr(C + 7, 45, moisture3_value_temp);
-  }
-  else
-  {
+  } else {
     u8g.drawStr(C + 2, 45, moisture3_value_temp);
   }
   u8g.setPrintPos(C + 23, 45);
@@ -524,16 +486,11 @@ void drawTH(void)
 
   u8g.setPrintPos(105, 60);
   u8g.print("A3");
-  if (moisture4_value < 10)
-  {
+  if (moisture4_value < 10) {
     u8g.drawStr(D + 14, 45, moisture4_value_temp);
-  }
-  else if (moisture4_value < 100)
-  {
+  } else if (moisture4_value < 100) {
     u8g.drawStr(D + 7, 45, moisture4_value_temp);
-  }
-  else
-  {
+  } else {
     u8g.drawStr(D + 2, 45, moisture4_value_temp);
   }
   u8g.setPrintPos(D + 23, 45);
