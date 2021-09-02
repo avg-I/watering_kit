@@ -39,6 +39,10 @@ bool force_screen_refresh = false;               // whether to force a screen re
 
 const unsigned long faultTimeout = 120000;       // if, while watering, moisture level does not increase for this long, then declare a fault
 
+// Watering hysteresis
+const int moistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
+const int moistureHighThreshold = 55;           // stop watering when moisture level raises above this threshold
+
 // set water pump pin
 int pump = 4;
 
@@ -253,7 +257,7 @@ bool update_state(struct flower *flower)
 
   if (!flower->watering) {
     // start watering if too dry
-    if (flower->moisture_cur < 30) {
+    if (flower->moisture_cur < moistureLowThreshold) {
       flower->watering = true;
       flower->valve_open = true;
       flower->phase_start = nowMillis;
@@ -279,7 +283,7 @@ bool update_state(struct flower *flower)
     }
 
     // stop watering if moist enough, otherwise continue watering
-    if (flower->moisture_cur > 55) {
+    if (flower->moisture_cur > moistureHighThreshold) {
       flower->watering = false;
       flower->valve_open = false;
       flower->phase_start = 0;
