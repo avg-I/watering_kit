@@ -325,6 +325,18 @@ void draw_elecrow(void) {
   u8g.drawXBMP(0, 5, 128, 32, bitmap_logo);
 }
 
+void lcd_print_padded_number(int number, int width, char padding)
+{
+  int threshold;
+
+  threshold = (width - 1) * 10;
+  while (number < threshold) {
+    u8g.print(padding);
+    threshold /= 10;
+  }
+  u8g.print(number, DEC);
+}
+
 // Set this to true to force RTC reset.
 bool rtc_reset = false;
 
@@ -349,9 +361,7 @@ void drawtime(void)
     u8g.setPrintPos(x + 28, 11);
     u8g.print("/");
     u8g.setPrintPos(x + 33, 11);
-    if (cur_time.month() < 10)
-      u8g.print('0');
-    u8g.print(cur_time.month(), DEC);
+    lcd_print_padded_number(cur_time.month(), 2, '0');
     u8g.setPrintPos(x + 47, 11);
     u8g.print("/");
     u8g.setPrintPos(x + 53, 11);
@@ -359,21 +369,15 @@ void drawtime(void)
     u8g.setFont(u8g_font_8x13);
     int x = 35;
     u8g.setPrintPos(x, 33);
-    if (cur_time.hour() < 10)
-      u8g.print('0');
-    u8g.print(cur_time.hour(), DEC);
+    lcd_print_padded_number(cur_time.hour(), 2, '0');
     u8g.setPrintPos(x + 15, 33);
     u8g.print(":");
     u8g.setPrintPos(x + 21, 33);
-    if (cur_time.minute() < 10)
-      u8g.print('0');
-    u8g.print(cur_time.minute(), DEC);
+    lcd_print_padded_number(cur_time.minute(), 2, '0');
     u8g.setPrintPos(x + 36, 33);
     u8g.print(":");
     u8g.setPrintPos(x + 42, 33);
-    if (cur_time.second() < 10)
-      u8g.print('0');
-    u8g.print(cur_time.second(), DEC);
+    lcd_print_padded_number(cur_time.second(), 2, '0');
   }
 }
 
@@ -448,64 +452,31 @@ void drawTH(void)
   int B = 32;
   int C = 64;
   int D = 96;
-  char moisture1_value_temp[4] = {0};
-  char moisture2_value_temp[4] = {0};
-  char moisture3_value_temp[4] = {0};
-  char moisture4_value_temp[4] = {0};
-
-  itoa(moisture1_value, moisture1_value_temp, 10);
-  itoa(moisture2_value, moisture2_value_temp, 10);
-  itoa(moisture3_value, moisture3_value_temp, 10);
-  itoa(moisture4_value, moisture4_value_temp, 10);
 
   u8g.setFont(u8g_font_7x14);
 
   u8g.setPrintPos(9, 60);
   u8g.print("A0");
-  if (moisture1_value < 10) {
-    u8g.drawStr(A + 14, 45, moisture1_value_temp);
-  } else if (moisture1_value < 100) {
-    u8g.drawStr(A + 7, 45, moisture1_value_temp);
-  } else {
-    u8g.drawStr(A + 2, 45, moisture1_value_temp);
-  }
-  u8g.setPrintPos(A + 23, 45 );
+  u8g.setPrintPos(A + 2, 45);
+  lcd_print_padded_number(moisture1_value, 3, ' ');
   u8g.print("%");
 
   u8g.setPrintPos(41, 60 );
   u8g.print("A1");
-  if (moisture2_value < 10) {
-    u8g.drawStr(B + 14, 45, moisture2_value_temp);
-  } else if (moisture2_value < 100) {
-    u8g.drawStr(B + 7, 45, moisture2_value_temp);
-  } else {
-    u8g.drawStr(B + 2, 45, moisture2_value_temp);
-  }
-  u8g.setPrintPos(B + 23, 45);
+  u8g.setPrintPos(B + 2, 45);
+  lcd_print_padded_number(moisture2_value, 3, ' ');
   u8g.print("%");
 
   u8g.setPrintPos(73, 60);
   u8g.print("A2");
-  if (moisture3_value < 10) {
-    u8g.drawStr(C + 14, 45, moisture3_value_temp);
-  } else if (moisture3_value < 100) {
-    u8g.drawStr(C + 7, 45, moisture3_value_temp);
-  } else {
-    u8g.drawStr(C + 2, 45, moisture3_value_temp);
-  }
-  u8g.setPrintPos(C + 23, 45);
+  u8g.setPrintPos(C + 2, 45);
+  lcd_print_padded_number(moisture3_value, 3, ' ');
   u8g.print("%");
 
   u8g.setPrintPos(105, 60);
   u8g.print("A3");
-  if (moisture4_value < 10) {
-    u8g.drawStr(D + 14, 45, moisture4_value_temp);
-  } else if (moisture4_value < 100) {
-    u8g.drawStr(D + 7, 45, moisture4_value_temp);
-  } else {
-    u8g.drawStr(D + 2, 45, moisture4_value_temp);
-  }
-  u8g.setPrintPos(D + 23, 45);
+  u8g.setPrintPos(D + 2, 45);
+  lcd_print_padded_number(moisture4_value, 3, ' ');
   u8g.print("%");
 }
 
