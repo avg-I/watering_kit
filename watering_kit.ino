@@ -27,21 +27,21 @@ struct flower
 // Otheriwse we could be pumping water too fast and put in too much of it
 // before a change in the moisture level is detected.
 // So, we pump the water in short bursts with longer pauses between them.
-const unsigned long activeWateringPeriod = 5000; // how long to have a valve open, milliseconds
-const unsigned long pauseWateringPeriod = 120000;// how long to have a valve closed before opening again, milliseconds
+const unsigned long ActiveWateringPeriod = 5000; // how long to have a valve open, milliseconds
+const unsigned long PauseWateringPeriod = 120000;// how long to have a valve closed before opening again, milliseconds
 
-const unsigned long idleUpdatePeriod = 60000;    // period between checking moisture levels while not watering, milliseconds
-const unsigned long activeUpdatePeriod = 1000;   // period between checking moisture levels while watering, milliseconds
+const unsigned long IdleUpdatePeriod = 60000;    // period between checking moisture levels while not watering, milliseconds
+const unsigned long ActiveUpdatePeriod = 1000;   // period between checking moisture levels while watering, milliseconds
 
-const unsigned long screenRefreshPeriod = 2000;  // how often to update information on the screen,
+const unsigned long ScreenRefreshPeriod = 2000;  // how often to update information on the screen,
 unsigned long last_refresh;                      // time of the last screen refresh milliseconds
 bool force_screen_refresh = false;               // whether to force a screen refresh after the alternative display
 
-const unsigned long faultTimeout = 400000;       // if, while watering, moisture level does not increase for this long, then declare a fault
+const unsigned long FaultTimeout = 400000;       // if, while watering, moisture level does not increase for this long, then declare a fault
 
 // Watering hysteresis
-const int moistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
-const int moistureHighThreshold = 40;           // stop watering when moisture level raises above this threshold
+const int MoistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
+const int MoistureHighThreshold = 40;           // stop watering when moisture level raises above this threshold
 
 // set water pump pin
 int pump = 4;
@@ -200,7 +200,7 @@ void loop()
   int button_state = digitalRead(button);
   if (button_state == 1) {
     unsigned long nowMillis = millis();
-    if (force_screen_refresh || nowMillis - last_refresh > screenRefreshPeriod) {
+    if (force_screen_refresh || nowMillis - last_refresh > ScreenRefreshPeriod) {
       force_screen_refresh = false;
       last_refresh = nowMillis;
       u8g.firstPage();
@@ -243,7 +243,7 @@ void update_moisture(struct flower *flower)
 void update_moisture_if_needed(struct flower *flower)
 {
   unsigned long nowMillis = millis();
-  unsigned long update_period = flower->watering ? activeUpdatePeriod : idleUpdatePeriod;
+  unsigned long update_period = flower->watering ? ActiveUpdatePeriod : IdleUpdatePeriod;
   if (nowMillis - flower->last_sensor_update >= update_period)
     update_moisture(flower);
 }
@@ -257,7 +257,7 @@ bool update_state(struct flower *flower)
 
   if (!flower->watering) {
     // start watering if too dry
-    if (flower->moisture_cur < moistureLowThreshold) {
+    if (flower->moisture_cur < MoistureLowThreshold) {
       flower->watering = true;
       flower->valve_open = true;
       flower->phase_start = nowMillis;
@@ -273,7 +273,7 @@ bool update_state(struct flower *flower)
     if (flower->moisture_cur > flower->moisture_max) {
       flower->moisture_max = flower->moisture_cur;
       flower->last_increase_ts = nowMillis;
-    } else if (nowMillis - flower->last_increase_ts > faultTimeout) {
+    } else if (nowMillis - flower->last_increase_ts > FaultTimeout) {
       flower->watering = false;
       flower->valve_open = false;
       flower->last_increase_ts = 0;
@@ -283,7 +283,7 @@ bool update_state(struct flower *flower)
     }
 
     // stop watering if moist enough, otherwise continue watering
-    if (flower->moisture_cur > moistureHighThreshold) {
+    if (flower->moisture_cur > MoistureHighThreshold) {
       flower->watering = false;
       flower->valve_open = false;
       flower->phase_start = 0;
@@ -292,7 +292,7 @@ bool update_state(struct flower *flower)
       return true;
     } else {
       // if the current phase is over, switch to the other phase
-      unsigned long phase_duration = flower->valve_open ? activeWateringPeriod : pauseWateringPeriod;
+      unsigned long phase_duration = flower->valve_open ? ActiveWateringPeriod : PauseWateringPeriod;
       if (nowMillis - flower->phase_start >= phase_duration) {
         flower->valve_open = !flower->valve_open;
         flower->phase_start = nowMillis;
