@@ -51,6 +51,9 @@ int button = 12;
 
 char daysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
+const int BitmapWidth = 32;
+const int BitmapHeight = 30;
+
 // good flower
 const unsigned char bitmap_good[] U8G_PROGMEM = {
   0x00, 0x42, 0x4C, 0x00, 0x00, 0xE6, 0x6E, 0x00, 0x00, 0xAE, 0x7B, 0x00, 0x00, 0x3A, 0x51, 0x00,
@@ -404,80 +407,40 @@ void drawLogo(uint8_t d)
 // bitmap_good:good  flowers
 void drawflower(void)
 {
-  int moisture1_value = flowers[0].moisture_cur;
-  int moisture2_value = flowers[1].moisture_cur;
-  int moisture3_value = flowers[2].moisture_cur;
-  int moisture4_value = flowers[3].moisture_cur;
+  const int bitmaps_y = 0;
 
-  if (flowers[0].faulted) {
-    u8g.drawXBMP(0, 0, 32, 30, bitmap_fault);
-  } else if (moisture1_value < 30) {
-    u8g.drawXBMP(0, 0, 32, 30, bitmap_bad);
-  } else {
-    u8g.drawXBMP(0, 0, 32, 30, bitmap_good);
-  }
+  for (int i = 0; i < NFLOWERS; i++) {
+    const unsigned char *bitmap;
 
-  if (flowers[1].faulted) {
-    u8g.drawXBMP(32, 0, 32, 30, bitmap_fault);
-  } else if (moisture2_value < 30) {
-    u8g.drawXBMP(32, 0, 32, 30, bitmap_bad);
-  } else {
-    u8g.drawXBMP(32, 0, 32, 30, bitmap_good);
-  }
+    if (flowers[i].faulted)
+      bitmap = bitmap_fault;
+    else if (flowers[i].moisture_cur < MoistureLowThreshold)
+      bitmap = bitmap_bad;
+    else
+      bitmap = bitmap_good;
 
-  if (flowers[2].faulted) {
-    u8g.drawXBMP(64, 0, 32, 30, bitmap_fault);
-  } else if (moisture3_value < 30) {
-    u8g.drawXBMP(64, 0, 32, 30, bitmap_bad);
-  } else {
-    u8g.drawXBMP(64, 0, 32, 30, bitmap_good);
-  }
-
-  if (flowers[3].faulted) {
-    u8g.drawXBMP(96, 0, 32, 30, bitmap_fault);
-  } else if (moisture4_value < 30) {
-    u8g.drawXBMP(96, 0, 32, 30, bitmap_bad);
-  } else {
-    u8g.drawXBMP(96, 0, 32, 30, bitmap_good);
+    u8g.drawXBMP(BitmapWidth * i, bitmaps_y, BitmapWidth, BitmapHeight, bitmap);
   }
 }
 
 void drawTH(void)
 {
-  int moisture1_value = flowers[0].moisture_cur;
-  int moisture2_value = flowers[1].moisture_cur;
-  int moisture3_value = flowers[2].moisture_cur;
-  int moisture4_value = flowers[3].moisture_cur;
-  int A = 0;
-  int B = 32;
-  int C = 64;
-  int D = 96;
+  const int label_y = 60;
+  const int value_y = 45;
+  const int label_x_offset = 9;
+  const int value_x_offset = 2;
 
   u8g.setFont(u8g_font_7x14);
 
-  u8g.setPrintPos(9, 60);
-  u8g.print("A0");
-  u8g.setPrintPos(A + 2, 45);
-  lcd_print_padded_number(moisture1_value, 3, ' ');
-  u8g.print("%");
+  for (int i = 0; i < NFLOWERS; i++) {
+    u8g.setPrintPos(BitmapWidth * i + label_x_offset, label_y);
+    u8g.print("A");
+    u8g.print(i, DEC);
 
-  u8g.setPrintPos(41, 60 );
-  u8g.print("A1");
-  u8g.setPrintPos(B + 2, 45);
-  lcd_print_padded_number(moisture2_value, 3, ' ');
-  u8g.print("%");
-
-  u8g.setPrintPos(73, 60);
-  u8g.print("A2");
-  u8g.setPrintPos(C + 2, 45);
-  lcd_print_padded_number(moisture3_value, 3, ' ');
-  u8g.print("%");
-
-  u8g.setPrintPos(105, 60);
-  u8g.print("A3");
-  u8g.setPrintPos(D + 2, 45);
-  lcd_print_padded_number(moisture4_value, 3, ' ');
-  u8g.print("%");
+    u8g.setPrintPos(BitmapWidth * i + value_x_offset, value_y);
+    lcd_print_padded_number(flowers[i].moisture_cur, 3, ' ');
+    u8g.print("%");
+  }
 }
 
 // vim: ts=2 sw=2 softtabstop=2 expandtab smartindent
