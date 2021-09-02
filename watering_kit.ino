@@ -44,18 +44,18 @@ const int MoistureLowThreshold = 30;            // start watering when moisture 
 const int MoistureHighThreshold = 40;           // stop watering when moisture level raises above this threshold
 
 // set water pump pin
-const int pump = 4;
+const int Pump = 4;
 
 // set button pin
-const int button = 12;
+const int Button = 12;
 
-const char daysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+const char DaysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
 const int BitmapWidth = 32;
 const int BitmapHeight = 30;
 
 // good flower
-const unsigned char bitmap_good[] U8G_PROGMEM = {
+const unsigned char BitmapGood[] U8G_PROGMEM = {
   0x00, 0x42, 0x4C, 0x00, 0x00, 0xE6, 0x6E, 0x00, 0x00, 0xAE, 0x7B, 0x00, 0x00, 0x3A, 0x51, 0x00,
   0x00, 0x12, 0x40, 0x00, 0x00, 0x02, 0x40, 0x00, 0x00, 0x06, 0x40, 0x00, 0x00, 0x06, 0x40, 0x00,
   0x00, 0x04, 0x60, 0x00, 0x00, 0x0C, 0x20, 0x00, 0x00, 0x08, 0x30, 0x00, 0x00, 0x18, 0x18, 0x00,
@@ -67,7 +67,7 @@ const unsigned char bitmap_good[] U8G_PROGMEM = {
 };
 
 // bad flower
-const unsigned char bitmap_bad[] U8G_PROGMEM = {
+const unsigned char BitmapBad[] U8G_PROGMEM = {
   0x00, 0x80, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0xE0, 0x0D, 0x00, 0x00, 0xA0, 0x0F, 0x00,
   0x00, 0x20, 0x69, 0x00, 0x00, 0x10, 0x78, 0x02, 0x00, 0x10, 0xC0, 0x03, 0x00, 0x10, 0xC0, 0x03,
   0x00, 0x10, 0x00, 0x01, 0x00, 0x10, 0x80, 0x00, 0x00, 0x10, 0xC0, 0x00, 0x00, 0x30, 0x60, 0x00,
@@ -78,7 +78,7 @@ const unsigned char bitmap_bad[] U8G_PROGMEM = {
   0x00, 0xF0, 0x03, 0x00, 0x00, 0xE0, 0x00, 0x00
 };
 
-const unsigned char bitmap_fault[] U8G_PROGMEM = {
+const unsigned char BitmapFault[] U8G_PROGMEM = {
 #if 0
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x01, 0x00, 0x00, 0xe0, 0x01, 0x00,
   0x00, 0xf0, 0x03, 0x00, 0x00, 0x38, 0x07, 0x00, 0x00, 0x38, 0x07, 0x00, 0x00, 0x1c, 0x0e, 0x00,
@@ -171,12 +171,12 @@ void setup()
   }
 
   // declare pump as output
-  pinMode(pump, OUTPUT);
-  digitalWrite(pump, LOW);
+  pinMode(Pump, OUTPUT);
+  digitalWrite(Pump, LOW);
 
   // declare switch as input
-  pinMode(button, INPUT);
-  digitalWrite(button, LOW);
+  pinMode(Button, INPUT);
+  digitalWrite(Button, LOW);
 
   // read values from the moisture sensors
   for (int i = 0; i < NFLOWERS; i++)
@@ -200,7 +200,7 @@ void loop()
 
   set_controls();
 
-  int button_state = digitalRead(button);
+  int button_state = digitalRead(Button);
   if (button_state == 1) {
     unsigned long nowMillis = millis();
     if (force_screen_refresh || nowMillis - last_refresh > ScreenRefreshPeriod) {
@@ -319,7 +319,7 @@ void set_controls(void)
   if (pump_on)
     delay(50);
 
-  digitalWrite(pump, pump_on ? HIGH : LOW);
+  digitalWrite(Pump, pump_on ? HIGH : LOW);
 }
 
 void draw_elecrow(void) {
@@ -360,7 +360,7 @@ void drawtime(void)
     u8g.setPrintPos(x, 11);
     u8g.print(cur_time.year(), DEC);
     u8g.setPrintPos(x + 80, 11);
-    u8g.print(daysOfTheWeek[cur_time.dayOfTheWeek()]);
+    u8g.print(DaysOfTheWeek[cur_time.dayOfTheWeek()]);
     u8g.setPrintPos(x + 28, 11);
     u8g.print("/");
     u8g.setPrintPos(x + 33, 11);
@@ -403,8 +403,8 @@ void drawLogo(uint8_t d)
 }
 
 // Style the flowers:
-// bitmap_bad: bad flowers,
-// bitmap_good:good  flowers
+// BitmapBad: bad flowers,
+// BitmapGood:good  flowers
 void drawflower(void)
 {
   const int bitmaps_y = 0;
@@ -413,11 +413,11 @@ void drawflower(void)
     const unsigned char *bitmap;
 
     if (flowers[i].faulted)
-      bitmap = bitmap_fault;
+      bitmap = BitmapFault;
     else if (flowers[i].moisture_cur < MoistureLowThreshold)
-      bitmap = bitmap_bad;
+      bitmap = BitmapBad;
     else
-      bitmap = bitmap_good;
+      bitmap = BitmapGood;
 
     u8g.drawXBMP(BitmapWidth * i, bitmaps_y, BitmapWidth, BitmapHeight, bitmap);
   }
