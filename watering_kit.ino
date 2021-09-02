@@ -78,6 +78,7 @@ const unsigned char BitmapBad[] U8G_PROGMEM = {
   0x00, 0xF0, 0x03, 0x00, 0x00, 0xE0, 0x00, 0x00
 };
 
+// warning sign '/!\'
 const unsigned char BitmapFault[] U8G_PROGMEM = {
 #if 0
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0x01, 0x00, 0x00, 0xe0, 0x01, 0x00,
@@ -402,9 +403,6 @@ void drawLogo(uint8_t d)
   u8g.drawStr(100 + d, 30 + d, "w");
 }
 
-// Style the flowers:
-// BitmapBad: bad flowers,
-// BitmapGood:good  flowers
 void drawflower(void)
 {
   const int bitmaps_y = 0;
