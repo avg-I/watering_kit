@@ -44,12 +44,12 @@ const int MoistureLowThreshold = 30;            // start watering when moisture 
 const int MoistureHighThreshold = 40;           // stop watering when moisture level raises above this threshold
 
 // set water pump pin
-int pump = 4;
+const int pump = 4;
 
 // set button pin
-int button = 12;
+const int button = 12;
 
-char daysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+const char daysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
 const int BitmapWidth = 32;
 const int BitmapHeight = 30;
