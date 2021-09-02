@@ -28,7 +28,7 @@ struct flower
 // before a change in the moisture level is detected.
 // So, we pump the water in short bursts with longer pauses between them.
 const unsigned long activeWateringPeriod = 5000; // how long to have a valve open, milliseconds
-const unsigned long pauseWateringPeriod = 25000; // how long to have a valve closed before opening again, milliseconds
+const unsigned long pauseWateringPeriod = 120000;// how long to have a valve closed before opening again, milliseconds
 
 const unsigned long idleUpdatePeriod = 60000;    // period between checking moisture levels while not watering, milliseconds
 const unsigned long activeUpdatePeriod = 1000;   // period between checking moisture levels while watering, milliseconds
@@ -37,11 +37,11 @@ const unsigned long screenRefreshPeriod = 2000;  // how often to update informat
 unsigned long last_refresh;                      // time of the last screen refresh milliseconds
 bool force_screen_refresh = false;               // whether to force a screen refresh after the alternative display
 
-const unsigned long faultTimeout = 120000;       // if, while watering, moisture level does not increase for this long, then declare a fault
+const unsigned long faultTimeout = 400000;       // if, while watering, moisture level does not increase for this long, then declare a fault
 
 // Watering hysteresis
 const int moistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
-const int moistureHighThreshold = 55;           // stop watering when moisture level raises above this threshold
+const int moistureHighThreshold = 40;           // stop watering when moisture level raises above this threshold
 
 // set water pump pin
 int pump = 4;
