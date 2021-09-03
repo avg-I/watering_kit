@@ -216,14 +216,14 @@ void loop()
       last_refresh = nowMillis;
       u8g.firstPage();
       do {
-        drawTH();
-        drawflower();
+        draw_moisture();
+        draw_flower();
       } while (u8g.nextPage());
     }
   } else {
     u8g.firstPage();
     do {
-      drawtime();
+      draw_time();
       u8g.drawStr(8, 55 , "www.elecrow.com");
     } while (u8g.nextPage());
     // force screen refresh when the button is released
@@ -355,7 +355,7 @@ void lcd_print_padded_number(int number, int width, char padding)
 // Set this to true to force RTC reset.
 bool rtc_reset = false;
 
-void drawtime(void)
+void draw_time(void)
 {
   if (!RTC.isrunning() || rtc_reset) {
     u8g.setFont(u8g_font_6x10);
@@ -387,7 +387,7 @@ void drawtime(void)
   }
 }
 
-void drawflower(void)
+void draw_flower(void)
 {
   const int bitmaps_y = 0;
 
@@ -405,7 +405,7 @@ void drawflower(void)
   }
 }
 
-void drawTH(void)
+void draw_moisture(void)
 {
   const int label_y = 60;
   const int value_y = 45;
