@@ -389,24 +389,6 @@ void drawtime(void)
   }
 }
 
-void drawLogo(uint8_t d)
-{
-  u8g.setFont(u8g_font_gdr25r);
-  u8g.drawStr(8 + d, 30 + d, "E");
-  u8g.setFont(u8g_font_gdr25r);
-  u8g.drawStr(30 + d, 30 + d, "l");
-  u8g.setFont(u8g_font_gdr25r);
-  u8g.drawStr(40 + d, 30 + d, "e");
-  u8g.setFont(u8g_font_gdr25r);
-  u8g.drawStr(55 + d, 30 + d, "c");
-  u8g.setFont(u8g_font_gdr25r);
-  u8g.drawStr(70 + d, 30 + d, "r");
-  u8g.setFont(u8g_font_gdr25r);
-  u8g.drawStr(85 + d, 30 + d, "o");
-  u8g.setFont(u8g_font_gdr25r);
-  u8g.drawStr(100 + d, 30 + d, "w");
-}
-
 void drawflower(void)
 {
   const int bitmaps_y = 0;
