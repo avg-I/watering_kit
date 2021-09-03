@@ -36,6 +36,9 @@ const unsigned long PauseWateringPeriod = 120000;// how long to have a valve clo
 const unsigned long IdleUpdatePeriod = 60000;    // period between checking moisture levels while not watering, milliseconds
 const unsigned long ActiveUpdatePeriod = 1000;   // period between checking moisture levels while watering, milliseconds
 
+const unsigned long SerialReportPeriod = 600000;// how often to update information on via the serial connection
+unsigned long last_report;                      // time of the last screen refresh milliseconds
+
 const unsigned long ScreenRefreshPeriod = 2000;  // how often to update information on the screen,
 unsigned long last_refresh;                      // time of the last screen refresh milliseconds
 bool force_screen_refresh = false;               // whether to force a screen refresh after the alternative display
@@ -198,6 +201,7 @@ void setup()
   // read values from the moisture sensors
   for (int i = 0; i < NFLOWERS; i++)
     update_moisture(i);
+  serial_report_moisture();
 }
 
 void loop()
@@ -217,9 +221,13 @@ void loop()
 
   set_controls();
 
+  unsigned long nowMillis = millis();
+
+  if (nowMillis - last_report > SerialReportPeriod)
+    serial_report_moisture();
+
   int button_state = digitalRead(Button);
   if (button_state == 1) {
-    unsigned long nowMillis = millis();
     if (force_screen_refresh || nowMillis - last_refresh > ScreenRefreshPeriod) {
       force_screen_refresh = false;
       last_refresh = nowMillis;
@@ -488,6 +496,26 @@ void draw_moisture(void)
     lcd_print_padded_number(flowers[i].moisture_cur, 3, ' ');
     u8g.print("%");
   }
+}
+
+void serial_report_moisture(void)
+{
+  unsigned long nowMillis = millis();
+
+  Serial.print("[");
+  Serial1.print(nowMillis, DEC);
+  Serial.println("]");
+  for (int f = 0; f < NFLOWERS; f++) {
+    Serial1.print("Flower ");
+    Serial1.print(f, DEC);
+    Serial1.print("moisture level is ");
+    Serial1.print(flowers[f].moisture_cur, DEC);
+    Serial1.print("%");
+    if (flowers[f].faulted)
+      Serial1.print(", FALTED");
+    Serial1.println("");
+  }
+  last_report = nowMillis;
 }
 
 // vim: ts=2 sw=2 softtabstop=2 expandtab smartindent
