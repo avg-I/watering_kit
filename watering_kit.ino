@@ -151,6 +151,9 @@ void setup()
   Wire.begin();
   RTC.begin();
   Serial.begin(9600);
+  Serial1.begin(115200);
+
+  Serial1.println("Starting...");
 
   flowers[0].relay_pin = 6;
   flowers[0].sensor_pin = A0;
@@ -278,6 +281,17 @@ bool update_state(int flower_id)
       flower->phase_start = nowMillis;
       flower->moisture_max = flower->moisture_cur;
       flower->last_increase_ts = nowMillis;
+
+      Serial.print("[");
+      Serial1.print(nowMillis, DEC);
+      Serial.println("]");
+      Serial1.print("Flower ");
+      Serial1.print(flower_id, DEC);
+      Serial1.println(" needs watering");
+      Serial1.print("Moisture level is ");
+      Serial1.print(flower->moisture_cur, DEC);
+      Serial1.println("%");
+
       return true;
     }
   } else {
@@ -294,6 +308,20 @@ bool update_state(int flower_id)
       flower->last_increase_ts = 0;
       flower->phase_start = 0;
       flower->faulted = true;
+
+      Serial.print("[");
+      Serial1.print(nowMillis, DEC);
+      Serial.println("]");
+      Serial1.print("Flower ");
+      Serial1.print(flower_id, DEC);
+      Serial1.println("moisture level is not increasing for too long");
+      Serial1.print("Current moisture level is ");
+      Serial1.print(flower->moisture_cur, DEC);
+      Serial1.println("%");
+      Serial1.print("Maximum seen moisture level is ");
+      Serial1.print(flower->moisture_max, DEC);
+      Serial1.println("%");
+
       return true;
     }
 
@@ -304,6 +332,17 @@ bool update_state(int flower_id)
       flower->phase_start = 0;
       flower->moisture_max = 0;
       flower->last_increase_ts = 0;
+
+      Serial.print("[");
+      Serial1.print(nowMillis, DEC);
+      Serial.println("]");
+      Serial1.print("Flower ");
+      Serial1.print(flower_id, DEC);
+      Serial1.println(" has been watered");
+      Serial1.print("Moisture level is ");
+      Serial1.print(flower->moisture_cur, DEC);
+      Serial1.println("%");
+
       return true;
     } else {
       // if the current phase is over, switch to the other phase
@@ -311,6 +350,15 @@ bool update_state(int flower_id)
       if (nowMillis - flower->phase_start >= phase_duration) {
         flower->valve_open = !flower->valve_open;
         flower->phase_start = nowMillis;
+
+        Serial.print("[");
+        Serial1.print(nowMillis, DEC);
+        Serial.println("]");
+        Serial1.print("Flower ");
+        Serial1.print(flower_id, DEC);
+        Serial1.print(" valve ");
+        Serial1.println(flower->valve_open ? "opened" : "closed");
+
         return true;
       }
     }
@@ -362,6 +410,7 @@ void draw_time(void)
     u8g.setFont(u8g_font_6x10);
     u8g.setPrintPos(5, 20);
     u8g.print("RTC is NOT running!");
+    Serial1.println("RTC is NOT running!");
     RTC.adjust(DateTime(__DATE__, __TIME__));
     rtc_reset = false;
   } else {
