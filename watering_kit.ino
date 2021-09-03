@@ -501,20 +501,32 @@ void draw_moisture(void)
 void serial_report_moisture(void)
 {
   unsigned long nowMillis = millis();
+  bool faulted = false;
 
   Serial1.print("[");
   Serial1.print(nowMillis, DEC);
   Serial1.println("]");
+  Serial1.print("Moisture levels:");
   for (int f = 0; f < NFLOWERS; f++) {
-    Serial1.print("Flower ");
-    Serial1.print(f, DEC);
-    Serial1.print(" moisture level is ");
+    Serial1.print(" ");
     Serial1.print(flowers[f].moisture_cur, DEC);
     Serial1.print("%");
     if (flowers[f].faulted)
-      Serial1.print(", FALTED");
+      faulted = true;
+  }
+  Serial1.println("");
+
+  if (faulted) {
+    Serial1.print("FALTED:");
+    for (int f = 0; f < NFLOWERS; f++) {
+      if (flowers[f].faulted) {
+        Serial1.print(" ");
+        Serial1.print(f, DEC);
+      }
+    }
     Serial1.println("");
   }
+
   last_report = nowMillis;
 }
 
