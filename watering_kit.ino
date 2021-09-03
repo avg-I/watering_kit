@@ -350,8 +350,6 @@ bool rtc_reset = false;
 
 void drawtime(void)
 {
-  int x = 5;
-  //Serial.print(cur_time.year(), DEC);
   if (!RTC.isrunning() || rtc_reset) {
     u8g.setFont(u8g_font_6x10);
     u8g.setPrintPos(5, 20);
@@ -362,29 +360,22 @@ void drawtime(void)
     DateTime cur_time = RTC.now();
 
     u8g.setFont(u8g_font_7x13);
-    u8g.setPrintPos(x, 11);
-    u8g.print(cur_time.year(), DEC);
-    u8g.setPrintPos(x + 80, 11);
-    u8g.print(DaysOfTheWeek[cur_time.dayOfTheWeek()]);
-    u8g.setPrintPos(x + 28, 11);
+    u8g.setPrintPos(5, 11);
+    lcd_print_padded_number(cur_time.year(), 4, '0');
     u8g.print("/");
-    u8g.setPrintPos(x + 33, 11);
     lcd_print_padded_number(cur_time.month(), 2, '0');
-    u8g.setPrintPos(x + 47, 11);
     u8g.print("/");
-    u8g.setPrintPos(x + 53, 11);
-    u8g.print(cur_time.day(), DEC);
+    lcd_print_padded_number(cur_time.day(), 2, '0');
+
+    u8g.setPrintPos(85, 11);
+    u8g.print(DaysOfTheWeek[cur_time.dayOfTheWeek()]);
+
     u8g.setFont(u8g_font_8x13);
-    int x = 35;
-    u8g.setPrintPos(x, 33);
+    u8g.setPrintPos(35, 33);
     lcd_print_padded_number(cur_time.hour(), 2, '0');
-    u8g.setPrintPos(x + 15, 33);
     u8g.print(":");
-    u8g.setPrintPos(x + 21, 33);
     lcd_print_padded_number(cur_time.minute(), 2, '0');
-    u8g.setPrintPos(x + 36, 33);
     u8g.print(":");
-    u8g.setPrintPos(x + 42, 33);
     lcd_print_padded_number(cur_time.second(), 2, '0');
   }
 }
