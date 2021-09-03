@@ -148,6 +148,12 @@ void setup()
   } while (u8g.nextPage());
   delay(3000);
 
+  u8g.firstPage();
+  do {
+    draw_test();
+  } while (u8g.nextPage());
+  delay(3000);
+
   Wire.begin();
   RTC.begin();
   Serial.begin(9600);
@@ -452,6 +458,15 @@ void draw_flower(void)
       bitmap = BitmapGood;
 
     u8g.drawXBMP(BitmapWidth * i, bitmaps_y, BitmapWidth, BitmapHeight, bitmap);
+  }
+}
+
+void draw_test(void)
+{
+  const unsigned char *bitmaps[] = { BitmapGood, BitmapBad, BitmapFault };
+
+  for (int i = 0; i < 3; i++) {
+    u8g.drawXBMP((BitmapWidth + 8) * i, 16, BitmapWidth, BitmapHeight, bitmaps[i]);
   }
 }
 
