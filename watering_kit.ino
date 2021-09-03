@@ -1,8 +1,11 @@
 #include <Wire.h>
 #include "U8glib.h"
-U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE);    // I2C
 #include "Wire.h"
 #include "RTClib.h"
+
+// Seems to be 132x64 SH1106 actually.
+U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE);    // I2C
+
 RTC_DS1307 RTC;
 
 #define NFLOWERS  4
