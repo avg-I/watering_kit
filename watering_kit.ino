@@ -144,7 +144,7 @@ void setup()
 {
   u8g.firstPage();
   do {
-    draw_elecrow();
+    draw_splash();
   } while (u8g.nextPage());
   delay(3000);
 
@@ -334,10 +334,11 @@ void set_controls(void)
   digitalWrite(Pump, pump_on ? HIGH : LOW);
 }
 
-void draw_elecrow(void) {
+void draw_splash(void) {
   u8g.setFont(u8g_font_gdr9r);
-  u8g.drawStr(8, 55 , "www.elecrow.com");
   u8g.drawXBMP(0, 5, 128, 32, bitmap_logo);
+  u8g.drawStr(8, 41 , "agapon@gmail.com");
+  u8g.drawStr(8, 55 , "www.elecrow.com");
 }
 
 void lcd_print_padded_number(int number, int width, char padding)
