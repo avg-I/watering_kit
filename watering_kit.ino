@@ -296,9 +296,9 @@ bool update_state(int flower_id)
       flower->moisture_max = flower->moisture_cur;
       flower->last_increase_ts = nowMillis;
 
-      Serial.print("[");
+      Serial1.print("[");
       Serial1.print(nowMillis, DEC);
-      Serial.println("]");
+      Serial1.println("]");
       Serial1.print("Flower ");
       Serial1.print(flower_id, DEC);
       Serial1.println(" needs watering");
@@ -323,12 +323,12 @@ bool update_state(int flower_id)
       flower->phase_start = 0;
       flower->faulted = true;
 
-      Serial.print("[");
+      Serial1.print("[");
       Serial1.print(nowMillis, DEC);
-      Serial.println("]");
+      Serial1.println("]");
       Serial1.print("Flower ");
       Serial1.print(flower_id, DEC);
-      Serial1.println("moisture level is not increasing for too long");
+      Serial1.println(" moisture level is not increasing for too long");
       Serial1.print("Current moisture level is ");
       Serial1.print(flower->moisture_cur, DEC);
       Serial1.println("%");
@@ -347,9 +347,9 @@ bool update_state(int flower_id)
       flower->moisture_max = 0;
       flower->last_increase_ts = 0;
 
-      Serial.print("[");
+      Serial1.print("[");
       Serial1.print(nowMillis, DEC);
-      Serial.println("]");
+      Serial1.println("]");
       Serial1.print("Flower ");
       Serial1.print(flower_id, DEC);
       Serial1.println(" has been watered");
@@ -365,9 +365,9 @@ bool update_state(int flower_id)
         flower->valve_open = !flower->valve_open;
         flower->phase_start = nowMillis;
 
-        Serial.print("[");
+        Serial1.print("[");
         Serial1.print(nowMillis, DEC);
-        Serial.println("]");
+        Serial1.println("]");
         Serial1.print("Flower ");
         Serial1.print(flower_id, DEC);
         Serial1.print(" valve ");
@@ -502,13 +502,13 @@ void serial_report_moisture(void)
 {
   unsigned long nowMillis = millis();
 
-  Serial.print("[");
+  Serial1.print("[");
   Serial1.print(nowMillis, DEC);
-  Serial.println("]");
+  Serial1.println("]");
   for (int f = 0; f < NFLOWERS; f++) {
     Serial1.print("Flower ");
     Serial1.print(f, DEC);
-    Serial1.print("moisture level is ");
+    Serial1.print(" moisture level is ");
     Serial1.print(flowers[f].moisture_cur, DEC);
     Serial1.print("%");
     if (flowers[f].faulted)
