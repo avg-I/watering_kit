@@ -188,7 +188,7 @@ void setup()
 
   // read values from the moisture sensors
   for (int i = 0; i < NFLOWERS; i++)
-    update_moisture(&flowers[i]);
+    update_moisture(i);
 }
 
 void loop()
@@ -196,14 +196,14 @@ void loop()
   // Also, treat the button press as a signal to refresh moisture readings immediately.
   if (force_screen_refresh) {
     for (int i = 0; i < NFLOWERS; i++)
-      update_moisture(&flowers[i]);
+      update_moisture(i);
   } else {
     for (int i = 0; i < NFLOWERS; i++)
-      update_moisture_if_needed(&flowers[i]);
+      update_moisture_if_needed(i);
   }
 
   for (int i = 0; i < NFLOWERS; i++) {
-    (void)update_state(&flowers[i]);
+    (void)update_state(i);
   }
 
   set_controls();
@@ -245,22 +245,26 @@ int read_sensor(int pin, int max_raw, int min_raw)
   return normalized;
 }
 
-void update_moisture(struct flower *flower)
+void update_moisture(int flower_id)
 {
+  struct flower *flower = &flowers[flower_id];
   flower->moisture_cur = read_sensor(flower->sensor_pin, flower->sensor_max_val, flower->sensor_min_val);
   flower->last_sensor_update = millis();
 }
 
-void update_moisture_if_needed(struct flower *flower)
+void update_moisture_if_needed(int flower_id)
 {
+  struct flower *flower = &flowers[flower_id];
   unsigned long nowMillis = millis();
   unsigned long update_period = flower->watering ? ActiveUpdatePeriod : IdleUpdatePeriod;
   if (nowMillis - flower->last_sensor_update >= update_period)
     update_moisture(flower);
 }
 
-bool update_state(struct flower *flower)
+bool update_state(int flower_id)
 {
+  struct flower *flower = &flowers[flower_id];
+
   if (flower->faulted)
     return false;
 
