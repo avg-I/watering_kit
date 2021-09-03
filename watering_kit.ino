@@ -139,8 +139,12 @@ const unsigned char bitmap_logo[] U8G_PROGMEM = {
 
 void setup()
 {
-  draw_elecrow();
-  delay(5000);
+  u8g.firstPage();
+  do {
+    draw_elecrow();
+  } while (u8g.nextPage());
+  delay(3000);
+
   Wire.begin();
   RTC.begin();
   Serial.begin(9600);
