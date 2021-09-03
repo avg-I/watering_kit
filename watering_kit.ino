@@ -215,7 +215,7 @@ void loop()
       do {
         drawTH();
         drawflower();
-      } while ( u8g.nextPage() );
+      } while (u8g.nextPage());
     }
   } else {
     u8g.firstPage();
