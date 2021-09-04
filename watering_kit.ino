@@ -275,7 +275,7 @@ void update_moisture_if_needed(int flower_id)
   unsigned long nowMillis = millis();
   unsigned long update_period = flower->watering ? ActiveUpdatePeriod : IdleUpdatePeriod;
   if (nowMillis - flower->last_sensor_update >= update_period)
-    update_moisture(flower);
+    update_moisture(flower_id);
 }
 
 bool update_state(int flower_id)
