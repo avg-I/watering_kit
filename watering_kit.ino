@@ -63,14 +63,14 @@ unsigned long last_refresh;                      // time of the last screen refr
 bool force_screen_refresh = false;               // whether to force a screen refresh after the alternative display
 
 
-// Watering hysteresis
+// Watering hysteresis.
 const int MoistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
 const int MoistureHighThreshold = 50;           // stop watering when moisture level raises above this threshold
 
-// set water pump pin
+// Water pump pin
 const int Pump = 4;
 
-// set button pin
+// Button pin.
 const int Button = 12;
 
 const char DaysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
