@@ -458,7 +458,7 @@ void lcd_print_padded_number(int number, int width, char padding)
   int threshold;
 
   threshold = (width - 1) * 10;
-  while (threshold > 0 && number < threshold) {
+  while (threshold > 1 && number < threshold) {
     u8g.print(padding);
     threshold /= 10;
   }
