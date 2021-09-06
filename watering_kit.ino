@@ -552,19 +552,25 @@ void draw_moisture(void)
 
 void draw_raw_readings(void)
 {
-  const byte raw_y = 60;
-  const byte value_y = 45;
-  const byte raw_x_offset = 2;
-  const byte value_x_offset = 2;
+  const byte x_offset = 2;
 
   u8g.setFont(u8g_font_7x14);
 
   for (int i = 0; i < NFLOWERS; i++) {
-    u8g.setPrintPos(BitmapWidth * i + value_x_offset, value_y);
+    u8g.setPrintPos(BitmapWidth * i + 9, 0);
+    u8g.print(flowers[i].faulted ? '!' : (flowers[i].watering ? '~' : '.'));
+    u8g.print(flowers[i].valve_open ? 'o' : 'x');
+
+    if (flowers[i].watering) {
+      u8g.setPrintPos(BitmapWidth * i + 2, 30);
+      u8g.print((millis() - flowers[i].phase_start) / 1000);
+    }
+
+    u8g.setPrintPos(BitmapWidth * i + 2, 45);
     lcd_print_padded_number(flowers[i].moisture_cur, 3, ' ');
     u8g.print("%");
 
-    u8g.setPrintPos(BitmapWidth * i + raw_x_offset, raw_y);
+    u8g.setPrintPos(BitmapWidth * i + 2, 60);
     lcd_print_padded_number(flowers[i].moisture_raw, 4, ' ');
   }
 }
