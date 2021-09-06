@@ -424,11 +424,12 @@ void set_controls(void)
     digitalWrite(PumpPin, HIGH);
 }
 
-void draw_splash(void) {
+void draw_splash(void)
+{
   u8g.setFont(u8g_font_gdr9r);
   u8g.drawXBMP(0, 5, 128, 32, bitmap_logo);
-  u8g.drawStr(8, 41 , F("agapon@gmail.com"));
-  u8g.drawStr(8, 55 , F("www.elecrow.com"));
+  u8g.drawStr(8, 47 , F("agapon@gmail.com"));
+  u8g.drawStr(8, 60 , F("www.elecrow.com"));
 }
 
 void lcd_print_padded_number(int number, int width, char padding)
