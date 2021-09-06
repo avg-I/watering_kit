@@ -557,7 +557,7 @@ void draw_raw_readings(void)
   u8g.setFont(u8g_font_7x14);
 
   for (int i = 0; i < NFLOWERS; i++) {
-    u8g.setPrintPos(BitmapWidth * i + 9, 0);
+    u8g.setPrintPos(BitmapWidth * i + 9, 15);
     u8g.print(flowers[i].faulted ? '!' : (flowers[i].watering ? '~' : '.'));
     u8g.print(flowers[i].valve_open ? 'o' : 'x');
 
