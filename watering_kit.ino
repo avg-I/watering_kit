@@ -63,23 +63,19 @@ unsigned long last_refresh;                      // time of the last screen refr
 bool force_screen_refresh = false;               // whether to force a screen refresh after the alternative display
 
 const int PumpStartDelay = 100;                  // how long to wait after opening a valve before starting the pump, ms
+bool pump_active;
 
 // Watering hysteresis.
 const int MoistureLowThreshold = 30;             // start watering when moisture level falls below this threshold
 const int MoistureHighThreshold = 50;            // stop watering when moisture level raises above this threshold
 
-// Water pump pin
-const int Pump = 4;
-
-// Button pin.
-const int Button = 12;
+const int PumpPin = 4;
+const int ButtonPin = 12;
 
 const char DaysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
 const int BitmapWidth = 32;
 const int BitmapHeight = 30;
-
-bool pump_active;
 
 // good flower
 const unsigned char BitmapGood[] U8G_PROGMEM = {
@@ -212,12 +208,12 @@ void setup()
   }
 
   // declare pump as output
-  pinMode(Pump, OUTPUT);
-  digitalWrite(Pump, LOW);
+  pinMode(PumpPin, OUTPUT);
+  digitalWrite(PumpPin, LOW);
 
   // declare switch as input
-  pinMode(Button, INPUT);
-  digitalWrite(Button, LOW);
+  pinMode(ButtonPin, INPUT);
+  digitalWrite(ButtonPin, LOW);
 
   // read values from the moisture sensors
   for (int i = 0; i < NFLOWERS; i++)
@@ -247,7 +243,7 @@ void loop()
   if (nowMillis - last_report > SerialReportPeriod)
     serial_report_moisture();
 
-  int button_state = digitalRead(Button);
+  int button_state = digitalRead(ButtonPin);
   if (button_state == 1) {
     if (force_screen_refresh || nowMillis - last_refresh > ScreenRefreshPeriod) {
       force_screen_refresh = false;
@@ -417,7 +413,7 @@ void set_controls(void)
     if (pump_active)
       pump_start_time = nowMillis;
     else
-      digitalWrite(Pump, LOW);
+      digitalWrite(PumpPin, LOW);
 
     print_serial_preamble(nowMillis);
     Serial1.print(F("Pump "));
@@ -425,7 +421,7 @@ void set_controls(void)
   }
 
   if (pump_active && nowMillis - pump_start_time > PumpStartDelay)
-    digitalWrite(Pump, HIGH);
+    digitalWrite(PumpPin, HIGH);
 }
 
 void draw_splash(void) {
