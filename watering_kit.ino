@@ -324,10 +324,10 @@ bool update_state(int flower_id)
       flower->last_increase_ts = nowMillis;
 
       print_serial_preamble(nowMillis);
-      Serial1.print("Flower ");
+      Serial1.print(F("Flower "));
       Serial1.print(flower_id, DEC);
-      Serial1.println(" needs watering");
-      Serial1.print("Moisture level is ");
+      Serial1.println(F(" needs watering"));
+      Serial1.print(F("Moisture level is "));
       Serial1.print(flower->moisture_cur, DEC);
       Serial1.println("%");
 
@@ -349,13 +349,13 @@ bool update_state(int flower_id)
       flower->faulted = true;
 
       print_serial_preamble(nowMillis);
-      Serial1.print("Flower ");
+      Serial1.print(F("Flower "));
       Serial1.print(flower_id, DEC);
-      Serial1.println(" moisture level is not increasing for too long");
-      Serial1.print("Current moisture level is ");
+      Serial1.println(F(" moisture level is not increasing for too long"));
+      Serial1.print(F("Current moisture level is "));
       Serial1.print(flower->moisture_cur, DEC);
       Serial1.println("%");
-      Serial1.print("Maximum seen moisture level is ");
+      Serial1.print(F("Maximum seen moisture level is "));
       Serial1.print(flower->moisture_max, DEC);
       Serial1.println("%");
 
@@ -371,10 +371,10 @@ bool update_state(int flower_id)
       flower->last_increase_ts = 0;
 
       print_serial_preamble(nowMillis);
-      Serial1.print("Flower ");
+      Serial1.print(F("Flower "));
       Serial1.print(flower_id, DEC);
-      Serial1.println(" has been watered");
-      Serial1.print("Moisture level is ");
+      Serial1.println(F(" has been watered"));
+      Serial1.print(F("Moisture level is "));
       Serial1.print(flower->moisture_cur, DEC);
       Serial1.println("%");
 
@@ -387,10 +387,10 @@ bool update_state(int flower_id)
         flower->phase_start = nowMillis;
 
         print_serial_preamble(nowMillis);
-        Serial1.print("Flower ");
+        Serial1.print(F("Flower "));
         Serial1.print(flower_id, DEC);
-        Serial1.print(" valve ");
-        Serial1.println(flower->valve_open ? "opened" : "closed");
+        Serial1.print(F(" valve "));
+        Serial1.println(flower->valve_open ? F("opened") : F("closed"));
 
         return true;
       }
@@ -414,8 +414,8 @@ void set_controls(void)
 
   if (pump_active != pump_on) {
     print_serial_preamble(millis());
-    Serial1.print("Pump ");
-    Serial1.println(pump_on ? "started" : "stopped");
+    Serial1.print(F("Pump "));
+    Serial1.println(pump_on ? F("started") : F("stopped"));
   }
 
   pump_active = pump_on;
@@ -425,8 +425,8 @@ void set_controls(void)
 void draw_splash(void) {
   u8g.setFont(u8g_font_gdr9r);
   u8g.drawXBMP(0, 5, 128, 32, bitmap_logo);
-  u8g.drawStr(8, 41 , "agapon@gmail.com");
-  u8g.drawStr(8, 55 , "www.elecrow.com");
+  u8g.drawStr(8, 41 , F("agapon@gmail.com"));
+  u8g.drawStr(8, 55 , F("www.elecrow.com"));
 }
 
 void lcd_print_padded_number(int number, int width, char padding)
@@ -449,8 +449,8 @@ void draw_time(void)
   if (!RTC.isrunning() || rtc_reset) {
     u8g.setFont(u8g_font_6x10);
     u8g.setPrintPos(5, 20);
-    u8g.print("RTC is NOT running!");
-    Serial1.println("RTC is NOT running!");
+    u8g.print(F("RTC is NOT running!"));
+    Serial1.println(F("RTC is NOT running!"));
     RTC.adjust(DateTime(__DATE__, __TIME__));
     rtc_reset = false;
   } else {
@@ -530,7 +530,7 @@ void serial_report_moisture(void)
   bool faulted = false;
 
   print_serial_preamble(nowMillis);
-  Serial1.print("Moisture levels:");
+  Serial1.print(F("Moisture levels:"));
   for (int f = 0; f < NFLOWERS; f++) {
     Serial1.print(" ");
     Serial1.print(flowers[f].moisture_cur, DEC);
@@ -541,7 +541,7 @@ void serial_report_moisture(void)
   Serial1.println("");
 
   if (faulted) {
-    Serial1.print("FALTED:");
+    Serial1.print(F("FALTED:"));
     for (int f = 0; f < NFLOWERS; f++) {
       if (flowers[f].faulted) {
         Serial1.print(" ");
