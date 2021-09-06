@@ -424,9 +424,10 @@ void set_controls(void)
   bool pump_on = false;
 
   for (int i = 0; i < NFLOWERS; i++) {
-    digitalWrite(flowers[i].relay_pin, flowers[i].valve_open ? HIGH : LOW);
-    if (flowers[i].valve_open)
+    if (flowers[i].valve_open) {
+      digitalWrite(flowers[i].relay_pin, HIGH);
       pump_on = true;
+    }
   }
 
   if (pump_active != pump_on) {
@@ -439,6 +440,11 @@ void set_controls(void)
     print_serial_preamble(nowMillis);
     Serial1.print(F("Pump "));
     Serial1.println(pump_on ? F("starting") : F("stopped"));
+  }
+
+  for (int i = 0; i < NFLOWERS; i++) {
+    if (!flowers[i].valve_open)
+      digitalWrite(flowers[i].relay_pin, LOW);
   }
 
   if (pump_active && nowMillis - pump_start_time > PumpStartDelay)
