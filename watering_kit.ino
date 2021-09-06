@@ -198,18 +198,18 @@ void setup()
 
   flowers[0].relay_pin = 6;
   flowers[0].sensor_pin = A0;
-  flowers[0].sensor_min_val = 270; // based on calibration
-  flowers[0].sensor_max_val = 590; // based on calibration
+  flowers[0].sensor_min_val = 247; // based on calibration
+  flowers[0].sensor_max_val = 585; // based on calibration
 
   flowers[1].relay_pin = 8;
   flowers[1].sensor_pin = A1;
-  flowers[1].sensor_min_val = 260; // based on calibration
-  flowers[1].sensor_max_val = 580; // based on calibration
+  flowers[1].sensor_min_val = 249; // based on calibration
+  flowers[1].sensor_max_val = 586; // based on calibration
 
   flowers[2].relay_pin = 9;
   flowers[2].sensor_pin = A2;
-  flowers[2].sensor_min_val = 260; // based on calibration
-  flowers[2].sensor_max_val = 590; // based on calibration
+  flowers[2].sensor_min_val = 245; // based on calibration
+  flowers[2].sensor_max_val = 586; // based on calibration
 
   flowers[3].relay_pin = 10;
   flowers[3].sensor_pin = A3;
