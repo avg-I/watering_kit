@@ -60,6 +60,8 @@ const char DaysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat
 const int BitmapWidth = 32;
 const int BitmapHeight = 30;
 
+bool pump_active;
+
 // good flower
 const unsigned char BitmapGood[] U8G_PROGMEM = {
   0x00, 0x42, 0x4C, 0x00, 0x00, 0xE6, 0x6E, 0x00, 0x00, 0xAE, 0x7B, 0x00, 0x00, 0x3A, 0x51, 0x00,
@@ -392,7 +394,14 @@ void set_controls(void)
   if (pump_on)
     delay(50);
 
-  digitalWrite(Pump, pump_on ? HIGH : LOW);
+  if (pump_active != pump_on) {
+    print_serial_preamble(millis());
+    Serial1.print("Pump ");
+    Serial1.println(pump_on ? "started" : "stopped");
+  }
+
+  pump_active = pump_on;
+  digitalWrite(Pump, pump_active ? HIGH : LOW);
 }
 
 void draw_splash(void) {
