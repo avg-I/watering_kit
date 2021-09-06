@@ -213,8 +213,8 @@ void setup()
 
   flowers[3].relay_pin = 10;
   flowers[3].sensor_pin = A3;
-  flowers[3].sensor_min_val = 280; // based on calibration
-  flowers[3].sensor_max_val = 590; // based on calibration
+  flowers[3].sensor_min_val = 249; // based on calibration
+  flowers[3].sensor_max_val = 582; // based on calibration
 
   // declare relays as outputs
   for (int i = 0; i < NFLOWERS; i++) {
