@@ -61,7 +61,7 @@ const unsigned long ActiveUpdatePeriod = 1000;   // period between checking mois
 const unsigned long SerialReportPeriod = 600000; // how often to update information on via the serial connection
 unsigned long last_serial_report;                // time of the last screen refresh milliseconds
 
-const int PumpStartDelay = 100;                  // how long to wait after opening a valve before starting the pump, ms
+const int PumpStartDelay = 20;                  // how long to wait after opening a valve before starting the pump, ms
 bool pump_active;
 
 // Watering hysteresis.
