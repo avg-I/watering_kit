@@ -55,8 +55,8 @@ const unsigned long FaultTimeout = 720000;
 const unsigned long IdleUpdatePeriod = 60000;    // period between checking moisture levels while not watering, milliseconds
 const unsigned long ActiveUpdatePeriod = 1000;   // period between checking moisture levels while watering, milliseconds
 
-const unsigned long SerialReportPeriod = 600000;// how often to update information on via the serial connection
-unsigned long last_report;                      // time of the last screen refresh milliseconds
+const unsigned long SerialReportPeriod = 600000; // how often to update information on via the serial connection
+unsigned long last_report;                       // time of the last screen refresh milliseconds
 
 const unsigned long ScreenRefreshPeriod = 2000;  // how often to update information on the screen,
 unsigned long last_refresh;                      // time of the last screen refresh milliseconds
@@ -64,8 +64,8 @@ bool force_screen_refresh = false;               // whether to force a screen re
 
 
 // Watering hysteresis.
-const int MoistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
-const int MoistureHighThreshold = 50;           // stop watering when moisture level raises above this threshold
+const int MoistureLowThreshold = 30;             // start watering when moisture level falls below this threshold
+const int MoistureHighThreshold = 50;            // stop watering when moisture level raises above this threshold
 
 // Water pump pin
 const int Pump = 4;
