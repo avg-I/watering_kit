@@ -537,7 +537,7 @@ void draw_moisture(void)
   const int label_x_offset = 9;
   const int value_x_offset = 2;
 
-  u8g.setFont(u8g_font_7x14);
+  u8g.setFont(u8g_font_7x14r);
 
   for (int i = 0; i < NFLOWERS; i++) {
     u8g.setPrintPos(BitmapWidth * i + label_x_offset, label_y);
@@ -554,7 +554,7 @@ void draw_raw_readings(void)
 {
   const byte x_offset = 2;
 
-  u8g.setFont(u8g_font_7x14);
+  u8g.setFont(u8g_font_7x14r);
 
   for (int i = 0; i < NFLOWERS; i++) {
     u8g.setPrintPos(BitmapWidth * i + 9, 15);
