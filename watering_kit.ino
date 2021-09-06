@@ -2,6 +2,7 @@
 #include "U8glib.h"
 #include "Wire.h"
 #include "RTClib.h"
+#include "OneButton.h"
 
 // Seems to be 132x64 SH1106 actually.
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE);    // I2C
@@ -11,16 +12,17 @@ RTC_DS1307 RTC;
 #define NFLOWERS  4
 struct flower
 {
+  int moisture_raw;         // current moisture level
+  byte moisture_cur;        // current moisture level
+  byte moisture_max;        // maximum moisture level seen during current watering session
   bool watering;            // are we in a watering session right now ?
   bool valve_open;          // are we actively watering (valve is open) ?
   bool faulted;             // have we detected a fault either with sensor or valve or pipe ?
-  int moisture_cur;         // current moisture level
-  int moisture_max;         // maximum moisture level seen during current watering session
   unsigned long last_sensor_update;// timestamp of last moisture level check
   unsigned long last_increase_ts;  // timestamp of the last increase in moisture level since watering started
   unsigned long phase_start; // timestamp of when we last opened or closed valve during current watering session
-  int relay_pin;
-  int sensor_pin;
+  byte relay_pin;
+  byte sensor_pin;
   int sensor_min_val;
   int sensor_max_val;
 } flowers[NFLOWERS];
@@ -42,6 +44,7 @@ struct flower
 // NB: this does not really account for several valves being open at the same time.
 // In practice that should be rare and it should only result in slower watering.
 // The pots should still get as much water as they need to reach the moisture levels.
+// NB: need to use unsigned long here as UINT_MAX is just 2^16.
 const unsigned long ActiveWateringPeriod = 1500;
 
 // How long to have a valve closed before opening again, milliseconds.
@@ -56,26 +59,38 @@ const unsigned long IdleUpdatePeriod = 60000;    // period between checking mois
 const unsigned long ActiveUpdatePeriod = 1000;   // period between checking moisture levels while watering, milliseconds
 
 const unsigned long SerialReportPeriod = 600000; // how often to update information on via the serial connection
-unsigned long last_report;                       // time of the last screen refresh milliseconds
-
-const unsigned long ScreenRefreshPeriod = 2000;  // how often to update information on the screen,
-unsigned long last_refresh;                      // time of the last screen refresh milliseconds
-bool force_screen_refresh = false;               // whether to force a screen refresh after the alternative display
+unsigned long last_serial_report;                // time of the last screen refresh milliseconds
 
 const int PumpStartDelay = 100;                  // how long to wait after opening a valve before starting the pump, ms
 bool pump_active;
 
 // Watering hysteresis.
-const int MoistureLowThreshold = 30;             // start watering when moisture level falls below this threshold
-const int MoistureHighThreshold = 50;            // stop watering when moisture level raises above this threshold
+const byte MoistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
+const byte MoistureHighThreshold = 50;           // stop watering when moisture level raises above this threshold
 
-const int PumpPin = 4;
-const int ButtonPin = 12;
+const byte PumpPin = 4;
+const byte ButtonPin = 12;
+
+OneButton main_button = OneButton(ButtonPin);
+enum DisplayMode {
+  DM_DEFAULT = 0,
+  DM_TECHNICAL,
+  DM_TIME
+} display_mode;
+
+// How often to update information on the screen in each display mode (ms).
+const int ScreenRefreshPeriods[] = {
+  2000,
+  1000,
+  1000
+};
+
+unsigned long last_display_refresh;                      // time of the last screen refresh, milliseconds
 
 const char DaysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
-const int BitmapWidth = 32;
-const int BitmapHeight = 30;
+const byte BitmapWidth = 32;
+const byte BitmapHeight = 30;
 
 // good flower
 const unsigned char BitmapGood[] U8G_PROGMEM = {
@@ -219,53 +234,61 @@ void setup()
   for (int i = 0; i < NFLOWERS; i++)
     update_moisture(i);
   serial_report_moisture();
+
+  main_button.attachClick(main_button_click);
+  main_button.attachDoubleClick(main_button_doubleclick);
 }
 
 void loop()
 {
-  // Also, treat the button press as a signal to refresh moisture readings immediately.
-  if (force_screen_refresh) {
-    for (int i = 0; i < NFLOWERS; i++)
-      update_moisture(i);
-  } else {
-    for (int i = 0; i < NFLOWERS; i++)
-      update_moisture_if_needed(i);
-  }
-
-  for (int i = 0; i < NFLOWERS; i++) {
+  // Waterning apparatus
+  for (int i = 0; i < NFLOWERS; i++)
+    update_moisture_if_needed(i);
+  for (int i = 0; i < NFLOWERS; i++)
     (void)update_state(i);
-  }
-
   set_controls();
 
+  // Serial communications
   unsigned long nowMillis = millis();
-
-  if (nowMillis - last_report > SerialReportPeriod)
+  if (nowMillis - last_serial_report > SerialReportPeriod)
     serial_report_moisture();
 
-  int button_state = digitalRead(ButtonPin);
-  if (button_state == 1) {
-    if (force_screen_refresh || nowMillis - last_refresh > ScreenRefreshPeriod) {
-      force_screen_refresh = false;
-      last_refresh = nowMillis;
-      u8g.firstPage();
-      do {
-        draw_moisture();
-        draw_flower();
-      } while (u8g.nextPage());
-    }
-  } else {
+  // Display and input
+  if (nowMillis - last_display_refresh > ScreenRefreshPeriods[display_mode]) {
+    last_display_refresh = nowMillis;
     u8g.firstPage();
     do {
-      draw_time();
-      u8g.drawStr(8, 55 , "www.elecrow.com");
+      switch (display_mode) {
+        case DM_DEFAULT:
+          draw_moisture();
+          draw_flower();
+          break;
+        case DM_TIME:
+          draw_time();
+          u8g.drawStr(8, 55 , F("www.elecrow.com"));
+          break;
+        case DM_TECHNICAL:
+          draw_raw_readings();
+          draw_debug();
+          break;
+      };
     } while (u8g.nextPage());
-    // force screen refresh when the button is released
-    force_screen_refresh = true;
   }
+  delay(1);
+  main_button.tick();
+}
 
-  // chill a little bit
-  delay(100);
+void main_button_click(void)
+{
+  if (display_mode != DM_DEFAULT)
+    display_mode = DM_DEFAULT;
+  else
+    display_mode =  DM_TECHNICAL;
+}
+
+void main_button_doubleclick(void)
+{
+  display_mode =  DM_TIME;
 }
 
 void print_serial_preamble(unsigned long nowMillis)
@@ -275,34 +298,32 @@ void print_serial_preamble(unsigned long nowMillis)
       Serial1.print("] ");
 }
 
-int read_sensor(int pin, int max_raw, int min_raw)
+void update_moisture(byte flower_id)
 {
-  float raw = analogRead(pin);
-  int normalized = map(raw, max_raw, min_raw, 0, 100);
+  struct flower *flower = &flowers[flower_id];
+
+  flower->moisture_raw = analogRead(flower->sensor_pin);
+
+  int normalized = map(flower->moisture_raw, flower->sensor_max_val, flower->sensor_min_val, 0, 100);
   if (normalized < 0)
     normalized = 0;
   else if (normalized > 100)
     normalized = 100;
-  return normalized;
-}
-
-void update_moisture(int flower_id)
-{
-  struct flower *flower = &flowers[flower_id];
-  flower->moisture_cur = read_sensor(flower->sensor_pin, flower->sensor_max_val, flower->sensor_min_val);
+  flower->moisture_cur = normalized;
   flower->last_sensor_update = millis();
 }
 
-void update_moisture_if_needed(int flower_id)
+void update_moisture_if_needed(byte flower_id)
 {
   struct flower *flower = &flowers[flower_id];
   unsigned long nowMillis = millis();
-  unsigned long update_period = flower->watering ? ActiveUpdatePeriod : IdleUpdatePeriod;
+  unsigned long update_period = (flower->watering || display_mode == DM_TECHNICAL) ?
+    ActiveUpdatePeriod : IdleUpdatePeriod;
   if (nowMillis - flower->last_sensor_update >= update_period)
     update_moisture(flower_id);
 }
 
-bool update_state(int flower_id)
+bool update_state(byte flower_id)
 {
   struct flower *flower = &flowers[flower_id];
 
@@ -527,6 +548,29 @@ void draw_moisture(void)
   }
 }
 
+void draw_raw_readings(void)
+{
+  const byte raw_y = 60;
+  const byte value_y = 45;
+  const byte raw_x_offset = 0;
+  const byte value_x_offset = 0;
+
+  u8g.setFont(u8g_font_7x14);
+
+  for (int i = 0; i < NFLOWERS; i++) {
+    u8g.setPrintPos(BitmapWidth * i + value_x_offset, value_y);
+    lcd_print_padded_number(flowers[i].moisture_cur, 3, ' ');
+    u8g.print("%");
+
+    u8g.setPrintPos(BitmapWidth * i + raw_x_offset, raw_y);
+    lcd_print_padded_number(flowers[i].moisture_raw, 4, ' ');
+  }
+}
+
+void draw_debug(void)
+{
+}
+
 void serial_report_moisture(void)
 {
   unsigned long nowMillis = millis();
@@ -554,7 +598,7 @@ void serial_report_moisture(void)
     Serial1.println("");
   }
 
-  last_report = nowMillis;
+  last_serial_report = nowMillis;
 }
 
 // vim: ts=2 sw=2 softtabstop=2 expandtab smartindent
