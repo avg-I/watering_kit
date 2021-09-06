@@ -62,6 +62,7 @@ const unsigned long ScreenRefreshPeriod = 2000;  // how often to update informat
 unsigned long last_refresh;                      // time of the last screen refresh milliseconds
 bool force_screen_refresh = false;               // whether to force a screen refresh after the alternative display
 
+const int PumpStartDelay = 100;                  // how long to wait after opening a valve before starting the pump, ms
 
 // Watering hysteresis.
 const int MoistureLowThreshold = 30;             // start watering when moisture level falls below this threshold
@@ -401,25 +402,30 @@ bool update_state(int flower_id)
 
 void set_controls(void)
 {
+  static unsigned long pump_start_time;
+  unsigned long nowMillis = millis();
   bool pump_on = false;
+
   for (int i = 0; i < NFLOWERS; i++) {
     digitalWrite(flowers[i].relay_pin, flowers[i].valve_open ? HIGH : LOW);
     if (flowers[i].valve_open)
       pump_on = true;
   }
 
-  // Give all opened valves some time to actually open
-  if (pump_on)
-    delay(50);
-
   if (pump_active != pump_on) {
-    print_serial_preamble(millis());
+    pump_active = pump_on;
+    if (pump_active)
+      pump_start_time = nowMillis;
+    else
+      digitalWrite(Pump, LOW);
+
+    print_serial_preamble(nowMillis);
     Serial1.print(F("Pump "));
-    Serial1.println(pump_on ? F("started") : F("stopped"));
+    Serial1.println(pump_on ? F("starting") : F("stopped"));
   }
 
-  pump_active = pump_on;
-  digitalWrite(Pump, pump_active ? HIGH : LOW);
+  if (pump_active && nowMillis - pump_start_time > PumpStartDelay)
+    digitalWrite(Pump, HIGH);
 }
 
 void draw_splash(void) {
