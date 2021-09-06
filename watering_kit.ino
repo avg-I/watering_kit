@@ -558,12 +558,12 @@ void draw_raw_readings(void)
 
   for (int i = 0; i < NFLOWERS; i++) {
     u8g.setPrintPos(BitmapWidth * i + 9, 15);
-    u8g.print(flowers[i].faulted ? '!' : (flowers[i].watering ? '~' : '.'));
-    u8g.print(flowers[i].valve_open ? 'o' : 'x');
+    u8g.print(flowers[i].faulted ? '!' : (flowers[i].watering ? '*' : '-'));
+    u8g.print(flowers[i].valve_open ? 'O' : 'X');
 
     if (flowers[i].watering) {
       u8g.setPrintPos(BitmapWidth * i + 2, 30);
-      u8g.print((millis() - flowers[i].phase_start) / 1000);
+      lcd_print_padded_number((millis() - flowers[i].phase_start) / 1000, 4, ' ');
     }
 
     u8g.setPrintPos(BitmapWidth * i + 2, 45);
