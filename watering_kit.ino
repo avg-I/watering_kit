@@ -455,9 +455,11 @@ void draw_splash(void)
 
 void lcd_print_padded_number(int number, int width, char padding)
 {
-  int threshold;
+  int threshold = 1;
 
-  threshold = (width - 1) * 10;
+  for (int i = 0; i < width - 1; i++)
+    threshold *= 10;
+
   while (threshold > 1 && number < threshold) {
     u8g.print(padding);
     threshold /= 10;
