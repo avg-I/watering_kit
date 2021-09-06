@@ -552,8 +552,8 @@ void draw_raw_readings(void)
 {
   const byte raw_y = 60;
   const byte value_y = 45;
-  const byte raw_x_offset = 0;
-  const byte value_x_offset = 0;
+  const byte raw_x_offset = 2;
+  const byte value_x_offset = 2;
 
   u8g.setFont(u8g_font_7x14);
 
