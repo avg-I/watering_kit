@@ -30,8 +30,27 @@ struct flower
 // Otheriwse we could be pumping water too fast and put in too much of it
 // before a change in the moisture level is detected.
 // So, we pump the water in short bursts with longer pauses between them.
-const unsigned long ActiveWateringPeriod = 5000; // how long to have a valve open, milliseconds
-const unsigned long PauseWateringPeriod = 120000;// how long to have a valve closed before opening again, milliseconds
+// The standard pump in the kit has flow of 2 liters per minute (120 l/h).
+// I want to emulate 1 l/h, so the duty cycle should be 1/120.
+// Also, I want to limit a single portion of water to no more than 50 ml.
+// ActiveWateringPeriod and PauseWateringPeriod are derived from these constraints.
+// NB: these calculations assume that the flow of water is unrestricted.
+// If there are any drippers, etc, the the flow would be different.
+
+// How long to have a valve open, milliseconds.
+// Equivalent to ~ 50 ml at 120 l/h (33 ml/s).
+// NB: this does not really account for several valves being open at the same time.
+// In practice that should be rare and it should only result in slower watering.
+// The pots should still get as much water as they need to reach the moisture levels.
+const unsigned long ActiveWateringPeriod = 1500;
+
+// How long to have a valve closed before opening again, milliseconds.
+// 1/120 duty cycle to emulate 1 l/h flow.
+const unsigned long PauseWateringPeriod = 180000 - ActiveWateringPeriod;
+
+// If, while watering, moisture level does not increase for this long, then declare a fault.
+// The value is calculated for 200 ml at (emulated) 1 l/h resulting in 12 minutes.
+const unsigned long FaultTimeout = 720000;
 
 const unsigned long IdleUpdatePeriod = 60000;    // period between checking moisture levels while not watering, milliseconds
 const unsigned long ActiveUpdatePeriod = 1000;   // period between checking moisture levels while watering, milliseconds
@@ -43,11 +62,10 @@ const unsigned long ScreenRefreshPeriod = 2000;  // how often to update informat
 unsigned long last_refresh;                      // time of the last screen refresh milliseconds
 bool force_screen_refresh = false;               // whether to force a screen refresh after the alternative display
 
-const unsigned long FaultTimeout = 400000;       // if, while watering, moisture level does not increase for this long, then declare a fault
 
 // Watering hysteresis
 const int MoistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
-const int MoistureHighThreshold = 40;           // stop watering when moisture level raises above this threshold
+const int MoistureHighThreshold = 50;           // stop watering when moisture level raises above this threshold
 
 // set water pump pin
 const int Pump = 4;
