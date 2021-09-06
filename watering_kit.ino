@@ -251,6 +251,13 @@ void loop()
   delay(100);
 }
 
+void print_serial_preamble(unsigned long nowMillis)
+{
+      Serial1.print("[");
+      Serial1.print(nowMillis, DEC);
+      Serial1.print("] ");
+}
+
 int read_sensor(int pin, int max_raw, int min_raw)
 {
   float raw = analogRead(pin);
@@ -296,9 +303,7 @@ bool update_state(int flower_id)
       flower->moisture_max = flower->moisture_cur;
       flower->last_increase_ts = nowMillis;
 
-      Serial1.print("[");
-      Serial1.print(nowMillis, DEC);
-      Serial1.println("]");
+      print_serial_preamble(nowMillis);
       Serial1.print("Flower ");
       Serial1.print(flower_id, DEC);
       Serial1.println(" needs watering");
@@ -323,9 +328,7 @@ bool update_state(int flower_id)
       flower->phase_start = 0;
       flower->faulted = true;
 
-      Serial1.print("[");
-      Serial1.print(nowMillis, DEC);
-      Serial1.println("]");
+      print_serial_preamble(nowMillis);
       Serial1.print("Flower ");
       Serial1.print(flower_id, DEC);
       Serial1.println(" moisture level is not increasing for too long");
@@ -347,9 +350,7 @@ bool update_state(int flower_id)
       flower->moisture_max = 0;
       flower->last_increase_ts = 0;
 
-      Serial1.print("[");
-      Serial1.print(nowMillis, DEC);
-      Serial1.println("]");
+      print_serial_preamble(nowMillis);
       Serial1.print("Flower ");
       Serial1.print(flower_id, DEC);
       Serial1.println(" has been watered");
@@ -365,9 +366,7 @@ bool update_state(int flower_id)
         flower->valve_open = !flower->valve_open;
         flower->phase_start = nowMillis;
 
-        Serial1.print("[");
-        Serial1.print(nowMillis, DEC);
-        Serial1.println("]");
+        print_serial_preamble(nowMillis);
         Serial1.print("Flower ");
         Serial1.print(flower_id, DEC);
         Serial1.print(" valve ");
@@ -503,9 +502,7 @@ void serial_report_moisture(void)
   unsigned long nowMillis = millis();
   bool faulted = false;
 
-  Serial1.print("[");
-  Serial1.print(nowMillis, DEC);
-  Serial1.println("]");
+  print_serial_preamble(nowMillis);
   Serial1.print("Moisture levels:");
   for (int f = 0; f < NFLOWERS; f++) {
     Serial1.print(" ");
