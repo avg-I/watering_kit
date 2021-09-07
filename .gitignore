@@ -3,3 +3,4 @@ build.options.json
 lib
 Makefile
 .*.sw?
+*.bak
