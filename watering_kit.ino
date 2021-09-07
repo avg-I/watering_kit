@@ -443,8 +443,9 @@ void set_controls(void)
 void draw_splash(void)
 {
   u8g.setFont(u8g_font_gdr9r);
-  u8g.drawStr(8, 47 , F("agapon@gmail.com"));
-  u8g.drawStr(8, 60 , F("www.elecrow.com"));
+  u8g.drawStr(8, 17 , F("agapon@gmail.com"));
+  u8g.drawStr(8, 38 , F("github.com/avg-I"));
+  u8g.drawStr(8, 59 , F("www.elecrow.com"));
 }
 
 void lcd_print_padded_number(int number, int width, char padding)
