@@ -9,6 +9,11 @@
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE);    // I2C
 
 RTC_DS1307 RTC;
+const byte RtcMagicReg = 0x00;
+const byte RtcMagicVal = 0x5a;
+
+const char RtcStoppedMsg[] PROGMEM = "RTC NOT running!";
+const char RtcLostMsg[] PROGMEM =    "RTC lost memory!";
 
 #define NFLOWERS  4
 struct flower
@@ -195,14 +200,21 @@ void setup()
   serial_commands.SetDefaultHandler(unknown_cmd);
   serial_commands.AddCommand(&rtc_time_cmd);
 
-  if (!RTC.isrunning()) {
-    Serial1.println(F("RTC NOT running!"));
-    RTC.adjust(DateTime(__DATE__, __TIME__));
+  byte rtc_check_val = RTC.readnvram(RtcMagicReg);
+  if (!RTC.isrunning() || rtc_check_val != RtcMagicVal) {
+    char buf[17];
+
+    if (rtc_check_val != RtcMagicVal)
+      strcpy_P(buf, RtcLostMsg);
+    else
+      strcpy_P(buf, RtcStoppedMsg);
+
+    Serial1.println(buf);
+    set_rtc(DateTime(__DATE__, __TIME__));
     u8g.firstPage();
     do {
       u8g.setFont(u8g_font_7x14r);
-      u8g.setPrintPos(5, 25);
-      u8g.print(F("RTC NOT running!"));
+      u8g.drawStr(5, 25, buf);
     } while (u8g.nextPage());
     delay(3000);
   }
@@ -247,6 +259,12 @@ void loop()
   }
   delay(1);
   main_button.tick();
+}
+
+void set_rtc(const DateTime& d)
+{
+  RTC.adjust(d);
+  RTC.writenvram(RtcMagicReg, RtcMagicVal);
 }
 
 void main_button_click(void)
@@ -573,7 +591,7 @@ void rtc_time_cmd_f(SerialCommands *sender)
     (timespec = sender->Next()) != NULL) {
     DateTime newTime(timespec);
     if (newTime.isValid())
-      RTC.adjust(newTime);
+      set_rtc(newTime);
     else
       sender->GetSerial()->println(F("invalid time specification"));
   } else {
