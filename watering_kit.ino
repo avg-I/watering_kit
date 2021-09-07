@@ -217,8 +217,10 @@ void loop()
     (void)update_state(i);
   set_controls();
 
-  // Serial communications
   unsigned long nowMillis = millis();
+
+  // Serial communications
+  serial_commands.ReadSerial();
   if (nowMillis - last_serial_report > SerialReportPeriod)
     serial_report_moisture();
 
