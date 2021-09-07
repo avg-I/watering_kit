@@ -3,6 +3,7 @@
 #include "Wire.h"
 #include "RTClib.h"
 #include "OneButton.h"
+#include "SerialCommands.h"
 
 // Seems to be 132x64 SH1106 actually.
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE);    // I2C
@@ -86,6 +87,12 @@ const int ScreenRefreshPeriods[] = {
 };
 
 unsigned long last_display_refresh;                      // time of the last screen refresh, milliseconds
+
+char serial_command_buffer[64];
+SerialCommands serial_commands(&Serial1, serial_command_buffer, sizeof(serial_command_buffer), "\r\n", " ");
+
+void rtc_time_cmd_f(SerialCommands *sender);
+SerialCommand rtc_time_cmd("rtc_time", rtc_time_cmd_f);
 
 const char DaysOfTheWeek[7][4] U8G_PROGMEM = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
@@ -190,6 +197,9 @@ void setup()
 
   main_button.attachClick(main_button_click);
   main_button.attachDoubleClick(main_button_doubleclick);
+
+  serial_commands.SetDefaultHandler(unknown_cmd);
+  serial_commands.AddCommand(&rtc_time_cmd);
 }
 
 void loop()
@@ -565,6 +575,32 @@ void serial_report_moisture(void)
   }
 
   last_serial_report = nowMillis;
+}
+
+void rtc_time_cmd_f(SerialCommands *sender)
+{
+  const char *subcmd = sender->Next();
+  const char *timespec;
+
+  if (subcmd != NULL && strcmp(subcmd, "get") == 0) {
+    sender->GetSerial()->println(RTC.now().timestamp().c_str());
+  } else if (subcmd != NULL && strcmp(subcmd, "set") == 0 &&
+    (timespec = sender->Next()) != NULL) {
+    DateTime newTime(timespec);
+    if (newTime.isValid())
+      RTC.adjust(newTime);
+    else
+      sender->GetSerial()->println(F("invalid time specification"));
+  } else {
+    sender->GetSerial()->println(F("<get|set iso8601-timespec>"));
+  }
+}
+
+void unknown_cmd(SerialCommands *sender, const char* cmd)
+{
+  sender->GetSerial()->print(F("Unrecognized command ["));
+	sender->GetSerial()->print(cmd);
+	sender->GetSerial()->println("]");
 }
 
 // vim: ts=2 sw=2 softtabstop=2 expandtab smartindent
