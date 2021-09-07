@@ -584,8 +584,8 @@ void rtc_time_cmd_f(SerialCommands *sender)
 void unknown_cmd(SerialCommands *sender, const char* cmd)
 {
   sender->GetSerial()->print(F("Unrecognized command ["));
-	sender->GetSerial()->print(cmd);
-	sender->GetSerial()->println("]");
+  sender->GetSerial()->print(cmd);
+  sender->GetSerial()->println("]");
 }
 
 // vim: ts=2 sw=2 softtabstop=2 expandtab smartindent
