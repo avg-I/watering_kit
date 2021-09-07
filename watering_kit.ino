@@ -453,10 +453,8 @@ void draw_time(void)
   u8g.print("/");
   lcd_print_padded_number(cur_time.day(), 2, '0');
 
-  u8g.setPrintPos(85, 14);
-  u8g.print(DaysOfTheWeek[cur_time.dayOfTheWeek()]);
+  u8g.drawStrP(100, 14, DaysOfTheWeek[cur_time.dayOfTheWeek()]);
 
-  u8g.setFont(u8g_font_7x14r);
   u8g.setPrintPos(35, 37);
   lcd_print_padded_number(cur_time.hour(), 2, '0');
   u8g.print(":");
