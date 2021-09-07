@@ -99,6 +99,8 @@ SerialCommands serial_commands(&Serial1, serial_command_buffer, sizeof(serial_co
 void rtc_time_cmd_f(SerialCommands *sender);
 SerialCommand rtc_time_cmd("rtc_time", rtc_time_cmd_f);
 
+char small_printf_buf[12];
+
 const char DaysOfTheWeek[7][4] U8G_PROGMEM = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
 const byte BitmapWidth = 32;
@@ -448,40 +450,20 @@ void draw_splash(void)
   u8g.drawStr(8, 59 , F("www.elecrow.com"));
 }
 
-void lcd_print_padded_number(int number, int width, char padding)
-{
-  int threshold = 1;
-
-  for (int i = 0; i < width - 1; i++)
-    threshold *= 10;
-
-  while (threshold > 1 && number < threshold) {
-    u8g.print(padding);
-    threshold /= 10;
-  }
-  u8g.print(number, DEC);
-}
-
 void draw_time(void)
 {
   DateTime cur_time = RTC.now();
 
   u8g.setFont(u8g_font_7x14r);
-  u8g.setPrintPos(5, 14);
-  lcd_print_padded_number(cur_time.year(), 4, '0');
-  u8g.print("/");
-  lcd_print_padded_number(cur_time.month(), 2, '0');
-  u8g.print("/");
-  lcd_print_padded_number(cur_time.day(), 2, '0');
+  snprintf(small_printf_buf, sizeof(small_printf_buf), "%04d/%02d/%02d",
+    cur_time.year(), cur_time.month(), cur_time.day());
+  u8g.drawStr(5, 14, small_printf_buf);
 
   u8g.drawStrP(100, 14, DaysOfTheWeek[cur_time.dayOfTheWeek()]);
 
-  u8g.setPrintPos(35, 37);
-  lcd_print_padded_number(cur_time.hour(), 2, '0');
-  u8g.print(":");
-  lcd_print_padded_number(cur_time.minute(), 2, '0');
-  u8g.print(":");
-  lcd_print_padded_number(cur_time.second(), 2, '0');
+  snprintf(small_printf_buf, sizeof(small_printf_buf), "%02d:%02d:%02d",
+    cur_time.hour(), cur_time.minute(), cur_time.second());
+  u8g.drawStr(35, 37, small_printf_buf);
 }
 
 void draw_flower(void)
@@ -513,12 +495,12 @@ void draw_moisture(void)
 
   for (int i = 0; i < NFLOWERS; i++) {
     u8g.setPrintPos(BitmapWidth * i + label_x_offset, label_y);
-    u8g.print("A");
+    u8g.print('A');
     u8g.print(i, DEC);
 
-    u8g.setPrintPos(BitmapWidth * i + value_x_offset, value_y);
-    lcd_print_padded_number(flowers[i].moisture_cur, 3, ' ');
-    u8g.print("%");
+    snprintf(small_printf_buf, sizeof(small_printf_buf), "%3d%%",
+      flowers[i].moisture_cur);
+    u8g.drawStr(BitmapWidth * i + value_x_offset, value_y, small_printf_buf);
   }
 }
 
@@ -534,16 +516,18 @@ void draw_raw_readings(void)
     u8g.print(flowers[i].valve_open ? 'O' : 'X');
 
     if (flowers[i].watering) {
-      u8g.setPrintPos(BitmapWidth * i + 2, 30);
-      lcd_print_padded_number((millis() - flowers[i].phase_start) / 1000, 4, ' ');
+      snprintf(small_printf_buf, sizeof(small_printf_buf), "%4d",
+          (millis() - flowers[i].phase_start) / 1000);
+      u8g.drawStr(BitmapWidth * i + 2, 30, small_printf_buf);
     }
 
-    u8g.setPrintPos(BitmapWidth * i + 2, 45);
-    lcd_print_padded_number(flowers[i].moisture_cur, 3, ' ');
-    u8g.print("%");
+    snprintf(small_printf_buf, sizeof(small_printf_buf), "%3d%%",
+      flowers[i].moisture_cur);
+    u8g.drawStr(BitmapWidth * i + 2, 45, small_printf_buf);
 
-    u8g.setPrintPos(BitmapWidth * i + 2, 60);
-    lcd_print_padded_number(flowers[i].moisture_raw, 4, ' ');
+    snprintf(small_printf_buf, sizeof(small_printf_buf), "%4d",
+      flowers[i].moisture_raw);
+    u8g.drawStr(BitmapWidth * i + 2, 60, small_printf_buf);
   }
 }
 
