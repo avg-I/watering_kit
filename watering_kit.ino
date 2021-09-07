@@ -194,6 +194,18 @@ void setup()
 
   serial_commands.SetDefaultHandler(unknown_cmd);
   serial_commands.AddCommand(&rtc_time_cmd);
+
+  if (!RTC.isrunning()) {
+    Serial1.println(F("RTC NOT running!"));
+    RTC.adjust(DateTime(__DATE__, __TIME__));
+    u8g.firstPage();
+    do {
+      u8g.setFont(u8g_font_7x14r);
+      u8g.setPrintPos(5, 25);
+      u8g.print(F("RTC NOT running!"));
+    } while (u8g.nextPage());
+    delay(3000);
+  }
 }
 
 void loop()
@@ -429,40 +441,28 @@ void lcd_print_padded_number(int number, int width, char padding)
   u8g.print(number, DEC);
 }
 
-// Set this to true to force RTC reset.
-bool rtc_reset = false;
-
 void draw_time(void)
 {
-  if (!RTC.isrunning() || rtc_reset) {
-    u8g.setFont(u8g_font_7x14r);
-    u8g.setPrintPos(5, 25);
-    u8g.print(F("RTC NOT running!"));
-    Serial1.println(F("RTC NOT running!"));
-    RTC.adjust(DateTime(__DATE__, __TIME__));
-    rtc_reset = false;
-  } else {
-    DateTime cur_time = RTC.now();
+  DateTime cur_time = RTC.now();
 
-    u8g.setFont(u8g_font_7x14r);
-    u8g.setPrintPos(5, 14);
-    lcd_print_padded_number(cur_time.year(), 4, '0');
-    u8g.print("/");
-    lcd_print_padded_number(cur_time.month(), 2, '0');
-    u8g.print("/");
-    lcd_print_padded_number(cur_time.day(), 2, '0');
+  u8g.setFont(u8g_font_7x14r);
+  u8g.setPrintPos(5, 14);
+  lcd_print_padded_number(cur_time.year(), 4, '0');
+  u8g.print("/");
+  lcd_print_padded_number(cur_time.month(), 2, '0');
+  u8g.print("/");
+  lcd_print_padded_number(cur_time.day(), 2, '0');
 
-    u8g.setPrintPos(85, 14);
-    u8g.print(DaysOfTheWeek[cur_time.dayOfTheWeek()]);
+  u8g.setPrintPos(85, 14);
+  u8g.print(DaysOfTheWeek[cur_time.dayOfTheWeek()]);
 
-    u8g.setFont(u8g_font_7x14r);
-    u8g.setPrintPos(35, 37);
-    lcd_print_padded_number(cur_time.hour(), 2, '0');
-    u8g.print(":");
-    lcd_print_padded_number(cur_time.minute(), 2, '0');
-    u8g.print(":");
-    lcd_print_padded_number(cur_time.second(), 2, '0');
-  }
+  u8g.setFont(u8g_font_7x14r);
+  u8g.setPrintPos(35, 37);
+  lcd_print_padded_number(cur_time.hour(), 2, '0');
+  u8g.print(":");
+  lcd_print_padded_number(cur_time.minute(), 2, '0');
+  u8g.print(":");
+  lcd_print_padded_number(cur_time.second(), 2, '0');
 }
 
 void draw_flower(void)
