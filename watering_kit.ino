@@ -87,7 +87,7 @@ const int ScreenRefreshPeriods[] = {
 
 unsigned long last_display_refresh;                      // time of the last screen refresh, milliseconds
 
-const char DaysOfTheWeek[7][4] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+const char DaysOfTheWeek[7][4] U8G_PROGMEM = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
 const byte BitmapWidth = 32;
 const byte BitmapHeight = 30;
