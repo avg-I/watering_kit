@@ -435,7 +435,7 @@ bool rtc_reset = false;
 void draw_time(void)
 {
   if (!RTC.isrunning() || rtc_reset) {
-    u8g.setFont(u8g_font_6x10);
+    u8g.setFont(u8g_font_6x10r);
     u8g.setPrintPos(5, 20);
     u8g.print(F("RTC is NOT running!"));
     Serial1.println(F("RTC is NOT running!"));
@@ -444,7 +444,7 @@ void draw_time(void)
   } else {
     DateTime cur_time = RTC.now();
 
-    u8g.setFont(u8g_font_7x13);
+    u8g.setFont(u8g_font_7x13r);
     u8g.setPrintPos(5, 11);
     lcd_print_padded_number(cur_time.year(), 4, '0');
     u8g.print("/");
@@ -455,7 +455,7 @@ void draw_time(void)
     u8g.setPrintPos(85, 11);
     u8g.print(DaysOfTheWeek[cur_time.dayOfTheWeek()]);
 
-    u8g.setFont(u8g_font_8x13);
+    u8g.setFont(u8g_font_8x13r);
     u8g.setPrintPos(35, 33);
     lcd_print_padded_number(cur_time.hour(), 2, '0');
     u8g.print(":");
