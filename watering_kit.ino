@@ -296,6 +296,8 @@ void main_button_doubleclick(void)
 void print_serial_preamble(unsigned long nowMillis)
 {
       Serial1.print("[");
+      Serial1.print(RTC.now().timestamp().c_str());
+      Serial1.print(" / ");
       Serial1.print(nowMillis, DEC);
       Serial1.print("] ");
 }
