@@ -64,7 +64,8 @@ const unsigned long FaultTimeout = 720000;
 const unsigned long IdleUpdatePeriod = 60000;    // period between checking moisture levels while not watering, milliseconds
 const unsigned long ActiveUpdatePeriod = 1000;   // period between checking moisture levels while watering, milliseconds
 
-const unsigned long SerialReportPeriod = 600000; // how often to update information on via the serial connection
+const unsigned long SerialIdleReportPeriod = 600000; // how often to update information on via the serial connection
+const unsigned long SerialActiveReportPeriod = 30000; // how often to update information on via the serial connection
 unsigned long last_serial_report;                // time of the last screen refresh milliseconds
 
 const int PumpStartDelay = 20;                  // how long to wait after opening a valve before starting the pump, ms
@@ -235,7 +236,17 @@ void loop()
 
   // Serial communications
   serial_commands.ReadSerial();
-  if (nowMillis - last_serial_report > SerialReportPeriod)
+
+  signed long serial_report_period;
+  bool watering = false;
+  for (int i = 0; i < NFLOWERS; i++) {
+    if (flowers[i].watering) {
+      watering = true;
+      break;
+    }
+  }
+  serial_report_period = watering ? SerialActiveReportPeriod : SerialIdleReportPeriod;
+  if (nowMillis - last_serial_report > serial_report_period)
     serial_report_moisture();
 
   // Display and input
