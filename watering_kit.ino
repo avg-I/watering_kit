@@ -72,6 +72,7 @@ unsigned long last_serial_report;                // time of the last screen refr
 
 const int PumpStartDelay = 20;                  // how long to wait after opening a valve before starting the pump, ms
 bool pump_active;
+bool pump_waiting;								// pump is active but PumpStartDelay hasn't passed yet
 
 // Watering hysteresis.
 const byte MoistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
@@ -454,10 +455,12 @@ void set_controls(void)
 
   if (pump_active != pump_on) {
     pump_active = pump_on;
-    if (pump_active)
+    if (pump_active) {
       pump_start_time = nowMillis;
-    else
+	  pump_waiting = true;
+	} else {
       digitalWrite(PumpPin, LOW);
+	}
 
     print_serial_preamble(&Serial1, nowMillis);
     Serial1.print(F("Pump "));
@@ -469,10 +472,11 @@ void set_controls(void)
       digitalWrite(flowers[i].relay_pin, LOW);
   }
 
-  if (pump_active && nowMillis - pump_start_time > PumpStartDelay) {
+  if (pump_waiting && nowMillis - pump_start_time > PumpStartDelay) {
     print_serial_preamble(&Serial1, nowMillis);
     Serial1.println(F("Pump started"));
     digitalWrite(PumpPin, HIGH);
+	pump_waiting = false;
   }
 }
 
