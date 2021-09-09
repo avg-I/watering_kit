@@ -22,6 +22,8 @@ struct flower
   byte moisture_cur;        // current moisture level
   byte moisture_max;        // maximum moisture level seen during current watering session
   bool watering;            // are we in a watering session right now ?
+  bool force_watering_start;
+  bool force_watering_stop;
   bool valve_open;          // are we actively watering (valve is open) ?
   bool faulted;             // have we detected a fault either with sensor or valve or pipe ?
   unsigned long last_sensor_update;// timestamp of last moisture level check
@@ -98,7 +100,15 @@ char serial_command_buffer[64];
 SerialCommands serial_commands(&Serial1, serial_command_buffer, sizeof(serial_command_buffer), "\r\n", " ");
 
 void rtc_time_cmd_f(SerialCommands *sender);
+void refresh_cmd_f(SerialCommands *sender);
+void show_cmd_f(SerialCommands *sender);
+void water_cmd_f(SerialCommands *sender);
+void clear_cmd_f(SerialCommands *sender);
 SerialCommand rtc_time_cmd("rtc_time", rtc_time_cmd_f);
+SerialCommand refresh_cmd("refresh", refresh_cmd_f);
+SerialCommand show_cmd("show", show_cmd_f);
+SerialCommand water_cmd("water", water_cmd_f);
+SerialCommand clear_cmd("clear", clear_cmd_f);
 
 char small_printf_buf[12];
 
@@ -195,13 +205,17 @@ void setup()
   // read values from the moisture sensors
   for (int i = 0; i < NFLOWERS; i++)
     update_moisture(i);
-  serial_report_moisture();
+  serial_report_moisture(&Serial1);
 
   main_button.attachClick(main_button_click);
   main_button.attachDoubleClick(main_button_doubleclick);
 
   serial_commands.SetDefaultHandler(unknown_cmd);
   serial_commands.AddCommand(&rtc_time_cmd);
+  serial_commands.AddCommand(&refresh_cmd);
+  serial_commands.AddCommand(&show_cmd);
+  serial_commands.AddCommand(&water_cmd);
+  serial_commands.AddCommand(&clear_cmd);
 
   byte rtc_check_val = RTC.readnvram(RtcMagicReg);
   if (!RTC.isrunning() || rtc_check_val != RtcMagicVal) {
@@ -247,7 +261,7 @@ void loop()
   }
   serial_report_period = watering ? SerialActiveReportPeriod : SerialIdleReportPeriod;
   if (nowMillis - last_serial_report > serial_report_period)
-    serial_report_moisture();
+    serial_report_moisture(&Serial1);
 
   // Display and input
   if (nowMillis - last_display_refresh > ScreenRefreshPeriods[display_mode]) {
@@ -293,13 +307,13 @@ void main_button_doubleclick(void)
   display_mode =  DM_TIME;
 }
 
-void print_serial_preamble(unsigned long nowMillis)
+void print_serial_preamble(Stream *stream, unsigned long nowMillis)
 {
-      Serial1.print("[");
-      Serial1.print(RTC.now().timestamp().c_str());
-      Serial1.print(" / ");
-      Serial1.print(nowMillis, DEC);
-      Serial1.print("] ");
+      stream->print("[");
+      stream->print(RTC.now().timestamp().c_str());
+      stream->print(" / ");
+      stream->print(nowMillis, DEC);
+      stream->print("] ");
 }
 
 void update_moisture(byte flower_id)
@@ -338,14 +352,16 @@ bool update_state(byte flower_id)
 
   if (!flower->watering) {
     // start watering if too dry
-    if (flower->moisture_cur < MoistureLowThreshold) {
+    if (flower->moisture_cur < MoistureLowThreshold ||
+        flower->force_watering_start) {
       flower->watering = true;
+      flower->force_watering_start = false;
       flower->valve_open = true;
       flower->phase_start = nowMillis;
       flower->moisture_max = flower->moisture_cur;
       flower->last_increase_ts = nowMillis;
 
-      print_serial_preamble(nowMillis);
+      print_serial_preamble(&Serial1, nowMillis);
       Serial1.print(F("Flower "));
       Serial1.print(flower_id, DEC);
       Serial1.println(F(" needs watering"));
@@ -370,7 +386,7 @@ bool update_state(byte flower_id)
       flower->phase_start = 0;
       flower->faulted = true;
 
-      print_serial_preamble(nowMillis);
+      print_serial_preamble(&Serial1, nowMillis);
       Serial1.print(F("Flower "));
       Serial1.print(flower_id, DEC);
       Serial1.println(F(" moisture level is not increasing for too long"));
@@ -385,14 +401,16 @@ bool update_state(byte flower_id)
     }
 
     // stop watering if moist enough, otherwise continue watering
-    if (flower->moisture_cur > MoistureHighThreshold) {
+    if (flower->moisture_cur > MoistureHighThreshold ||
+        flower->force_watering_stop) {
       flower->watering = false;
+      flower->force_watering_stop = false;
       flower->valve_open = false;
       flower->phase_start = 0;
       flower->moisture_max = 0;
       flower->last_increase_ts = 0;
 
-      print_serial_preamble(nowMillis);
+      print_serial_preamble(&Serial1, nowMillis);
       Serial1.print(F("Flower "));
       Serial1.print(flower_id, DEC);
       Serial1.println(F(" has been watered"));
@@ -408,7 +426,7 @@ bool update_state(byte flower_id)
         flower->valve_open = !flower->valve_open;
         flower->phase_start = nowMillis;
 
-        print_serial_preamble(nowMillis);
+        print_serial_preamble(&Serial1, nowMillis);
         Serial1.print(F("Flower "));
         Serial1.print(flower_id, DEC);
         Serial1.print(F(" valve "));
@@ -441,7 +459,7 @@ void set_controls(void)
     else
       digitalWrite(PumpPin, LOW);
 
-    print_serial_preamble(nowMillis);
+    print_serial_preamble(&Serial1, nowMillis);
     Serial1.print(F("Pump "));
     Serial1.println(pump_on ? F("starting") : F("stopped"));
   }
@@ -452,7 +470,7 @@ void set_controls(void)
   }
 
   if (pump_active && nowMillis - pump_start_time > PumpStartDelay) {
-    print_serial_preamble(nowMillis);
+    print_serial_preamble(&Serial1, nowMillis);
     Serial1.println(F("Pump started"));
     digitalWrite(PumpPin, HIGH);
   }
@@ -551,31 +569,31 @@ void draw_debug(void)
 {
 }
 
-void serial_report_moisture(void)
+void serial_report_moisture(Stream *stream)
 {
   unsigned long nowMillis = millis();
   bool faulted = false;
 
-  print_serial_preamble(nowMillis);
-  Serial1.print(F("Moisture levels:"));
+  print_serial_preamble(stream, nowMillis);
+  stream->print(F("Moisture levels:"));
   for (int f = 0; f < NFLOWERS; f++) {
-    Serial1.print(" ");
-    Serial1.print(flowers[f].moisture_cur, DEC);
-    Serial1.print("%");
+    stream->print(" ");
+    stream->print(flowers[f].moisture_cur, DEC);
+    stream->print("%");
     if (flowers[f].faulted)
       faulted = true;
   }
-  Serial1.println("");
+  stream->println("");
 
   if (faulted) {
-    Serial1.print(F("FALTED:"));
+    stream->print(F("FALTED:"));
     for (int f = 0; f < NFLOWERS; f++) {
       if (flowers[f].faulted) {
-        Serial1.print(" ");
-        Serial1.print(f, DEC);
+        stream->print(" ");
+        stream->print(f, DEC);
       }
     }
-    Serial1.println("");
+    stream->println("");
   }
 
   last_serial_report = nowMillis;
@@ -597,6 +615,60 @@ void rtc_time_cmd_f(SerialCommands *sender)
       sender->GetSerial()->println(F("invalid time specification"));
   } else {
     sender->GetSerial()->println(F("<get|set iso8601-timespec>"));
+  }
+}
+
+void refresh_cmd_f(SerialCommands *sender)
+{
+  for (int i = 0; i < NFLOWERS; i++)
+    update_moisture(i);
+}
+
+void show_cmd_f(SerialCommands *sender)
+{
+  serial_report_moisture(sender->GetSerial());
+}
+
+void water_cmd_f(SerialCommands *sender)
+{
+  const char *subcmd = sender->Next();
+  const char *flower_str = sender->Next();
+  bool on;
+  byte flower_id;
+
+  if (subcmd == NULL || flower_str == NULL) {
+    sender->GetSerial()->println(F("usage error"));
+    return;
+  }
+  if (strcmp(subcmd, "on") == 0)
+    on = true;
+  else if (strcmp(subcmd, "off") == 0)
+    on = false;
+  else {
+    sender->GetSerial()->println(F("usage error"));
+    return;
+  }
+  flower_id = atoi(flower_str);
+  if (flower_id < 0 || flower_id >= NFLOWERS) {
+    sender->GetSerial()->println(F("usage error"));
+    return;
+  }
+
+  if (on && !flowers[flower_id].watering)
+    flowers[flower_id].force_watering_start = true;
+  else if (!on && flowers[flower_id].watering)
+    flowers[flower_id].force_watering_stop = true;
+}
+
+void clear_cmd_f(SerialCommands *sender)
+{
+  for (int i = 0; i < NFLOWERS; i++) {
+    if (flowers[i].faulted) {
+      flowers[i].faulted = false;
+      Serial1.print(F("Flower "));
+      Serial1.print(i, DEC);
+      Serial1.println(F(" fault cleared"));
+    }
   }
 }
 
