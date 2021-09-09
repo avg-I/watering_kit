@@ -449,8 +449,11 @@ void set_controls(void)
       digitalWrite(flowers[i].relay_pin, LOW);
   }
 
-  if (pump_active && nowMillis - pump_start_time > PumpStartDelay)
+  if (pump_active && nowMillis - pump_start_time > PumpStartDelay) {
+    print_serial_preamble(nowMillis);
+    Serial1.println(F("Pump started"));
     digitalWrite(PumpPin, HIGH);
+  }
 }
 
 void draw_splash(void)
