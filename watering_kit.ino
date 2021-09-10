@@ -107,12 +107,14 @@ void show_cmd_f(SerialCommands *sender);
 void water_cmd_f(SerialCommands *sender);
 void clear_cmd_f(SerialCommands *sender);
 void fault_cmd_f(SerialCommands *sender);
+void debug_cmd_f(SerialCommands *sender);
 SerialCommand rtc_time_cmd("rtc_time", rtc_time_cmd_f);
 SerialCommand refresh_cmd("refresh", refresh_cmd_f);
 SerialCommand show_cmd("show", show_cmd_f);
 SerialCommand water_cmd("water", water_cmd_f);
 SerialCommand clear_cmd("clear", clear_cmd_f);
 SerialCommand fault_cmd("fault", fault_cmd_f);
+SerialCommand debug_cmd("debug", debug_cmd_f);
 
 char small_printf_buf[12];
 
@@ -221,6 +223,7 @@ void setup()
   serial_commands.AddCommand(&water_cmd);
   serial_commands.AddCommand(&clear_cmd);
   serial_commands.AddCommand(&fault_cmd);
+  serial_commands.AddCommand(&debug_cmd);
 
   byte rtc_check_val = RTC.readnvram(RtcMagicReg);
   if (!RTC.isrunning() || rtc_check_val != RtcMagicVal) {
@@ -705,6 +708,53 @@ void fault_cmd_f(SerialCommands *sender)
   if (flower_id < 0)
     return;
   flowers[flower_id].force_fault = true;
+}
+
+void debug_cmd_f(SerialCommands *sender)
+{
+  Stream *s = sender->GetSerial();
+  struct flower *flower;
+  byte flower_id;
+
+  flower_id = get_flower(sender);
+  if (flower_id < 0)
+    return;
+  flower = &flowers[flower_id];
+
+  s->print("raw: ");
+  s->print(flower->moisture_raw);
+  s->print(" cur: ");
+  s->print(flower->moisture_cur);
+  s->print(" max: ");
+  s->print(flower->moisture_max);
+  s->print(" watering: ");
+  s->print(flower->watering ? "yes" : "no");
+  s->print(" open: ");
+  s->print(flower->valve_open ? "yes" : "no");
+  s->print(" faulted: ");
+  s->print(flower->faulted ? "yes" : "no");
+  s->print(" update: ");
+  s->print(flower->last_sensor_update);
+  s->print(" increase: ");
+  s->print(flower->last_increase_ts);
+  s->print(" phase: ");
+  s->print(flower->phase_start);
+  s->print(" now: ");
+  s->println(millis());
+
+  s->print("relay: ");
+  s->print(flower->relay_pin);
+  s->print(" sensor: ");
+  s->print(flower->sensor_pin);
+  s->print(" min: ");
+  s->print(flower->sensor_min_val);
+  s->print(" max: ");
+  s->println(flower->sensor_max_val);
+
+  s->print("pump, active: ");
+  s->print(pump_active ? "yes" : "no");
+  s->print(" waiting: ");
+  s->print(pump_waiting ? "yes" : "no");
 }
 
 void unknown_cmd(SerialCommands *sender, const char* cmd)
