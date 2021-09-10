@@ -87,13 +87,14 @@ bool pump_active;
 bool pump_waiting;								// pump is active but PumpStartDelay hasn't passed yet
 
 // Watering hysteresis.
-const byte MoistureLowThreshold = 30;            // start watering when moisture level falls below this threshold
-const byte MoistureHighThreshold = 50;           // stop watering when moisture level raises above this threshold
+const byte MoistureLowThreshold = 30;           // start watering when moisture level falls below this threshold
+const byte MoistureHighThreshold = 50;          // stop watering when moisture level raises above this threshold
 
 const byte PumpPin = 4;
 const byte ButtonPin = 12;
 
 OneButton main_button = OneButton(ButtonPin);
+
 enum DisplayMode {
   DM_DEFAULT = 0,
   DM_TECHNICAL,
