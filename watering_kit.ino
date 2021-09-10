@@ -86,6 +86,9 @@ const int PumpStartDelay = 20;                  // how long to wait after openin
 bool pump_active;
 bool pump_waiting;								// pump is active but PumpStartDelay hasn't passed yet
 
+const unsigned long WarmUpDelay = 120000;       // time for initial "warming up" of sensor readings, etc
+bool warming_up;
+
 // Watering hysteresis.
 const byte MoistureLowThreshold = 30;           // start watering when moisture level falls below this threshold
 const byte MoistureHighThreshold = 50;          // stop watering when moisture level raises above this threshold
@@ -173,6 +176,8 @@ const unsigned char BitmapFault[] U8G_PROGMEM = {
 
 void setup()
 {
+  warming_up = true;
+
   u8g.firstPage();
   do {
     draw_splash();
@@ -265,14 +270,18 @@ void setup()
 
 void loop()
 {
+  unsigned long nowMillis = millis();
+
+  // Warm-up handling
+  if (warming_up && nowMillis > WarmUpDelay)
+    warming_up = false;
+
   // Waterning apparatus
   for (int i = 0; i < NFLOWERS; i++)
     update_moisture_if_needed(i);
   for (int i = 0; i < NFLOWERS; i++)
     (void)update_state(i);
   set_controls();
-
-  unsigned long nowMillis = millis();
 
   // Serial communications
   serial_commands.ReadSerial();
@@ -360,7 +369,7 @@ void update_moisture_if_needed(byte flower_id)
 {
   struct flower *flower = &flowers[flower_id];
   unsigned long nowMillis = millis();
-  unsigned long update_period = (flower->watering || display_mode == DM_TECHNICAL) ?
+  unsigned long update_period = (warming_up || flower->watering || display_mode == DM_TECHNICAL) ?
     ActiveUpdatePeriod : IdleUpdatePeriod;
   if (nowMillis - flower->last_sensor_update >= update_period)
     update_moisture(flower_id);
@@ -370,7 +379,7 @@ bool update_state(byte flower_id)
 {
   struct flower *flower = &flowers[flower_id];
 
-  if (flower->faulted)
+  if (flower->faulted || warming_up)
     return false;
 
   unsigned long nowMillis = millis();
@@ -753,10 +762,10 @@ void debug_cmd_f(SerialCommands *sender)
   s->print(flower->watering ? "yes" : "no");
   s->print(" open: ");
   s->print(flower->valve_open ? "yes" : "no");
-  s->println(" faulted: ");
+  s->print(" faulted: ");
+  s->println(flower->faulted ? "yes" : "no");
 
-  s->print(flower->faulted ? "yes" : "no");
-  s->print(" update: ");
+  s->print("update: ");
   s->print(flower->last_sensor_update);
   s->print(" increase: ");
   s->print(flower->last_increase_ts);
