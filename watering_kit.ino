@@ -15,6 +15,8 @@ const byte RtcMagicVal = 0x5a;
 const char RtcStoppedMsg[] PROGMEM = "RTC NOT running!";
 const char RtcLostMsg[] PROGMEM =    "RTC lost memory!";
 
+bool rtc_inaccurate;
+
 #define NFLOWERS  4
 struct flower
 {
@@ -233,9 +235,11 @@ void setup()
       strcpy_P(buf, RtcLostMsg);
     else
       strcpy_P(buf, RtcStoppedMsg);
-
     Serial1.println(buf);
+
     set_rtc(DateTime(__DATE__, __TIME__));
+    rtc_inaccurate = true;
+
     u8g.firstPage();
     do {
       u8g.setFont(u8g_font_7x14r);
@@ -283,7 +287,6 @@ void loop()
           break;
         case DM_TIME:
           draw_time();
-          u8g.drawStr(8, 55 , F("www.elecrow.com"));
           break;
         case DM_TECHNICAL:
           draw_raw_readings();
@@ -511,6 +514,11 @@ void draw_time(void)
   snprintf(small_printf_buf, sizeof(small_printf_buf), "%02d:%02d:%02d",
     cur_time.hour(), cur_time.minute(), cur_time.second());
   u8g.drawStr(35, 37, small_printf_buf);
+
+  if (rtc_inaccurate)
+    u8g.drawStr(4, 55 , F("check RTC battery"));
+  else
+    u8g.drawStr(8, 55 , F("www.elecrow.com"));
 }
 
 void draw_flower(void)
@@ -622,10 +630,12 @@ void rtc_time_cmd_f(SerialCommands *sender)
   } else if (subcmd != NULL && strcmp(subcmd, "set") == 0 &&
     (timespec = sender->Next()) != NULL) {
     DateTime newTime(timespec);
-    if (newTime.isValid())
+    if (newTime.isValid()) {
       set_rtc(newTime);
-    else
+      rtc_inaccurate = false;
+    } else {
       sender->GetSerial()->println("invalid time specification");
+    }
   } else {
     sender->GetSerial()->println("<get|set iso8601-timespec>");
   }
