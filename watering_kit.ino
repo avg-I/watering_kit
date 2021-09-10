@@ -232,7 +232,6 @@ void setup()
   // read values from the moisture sensors
   for (int i = 0; i < NFLOWERS; i++)
     update_moisture(i);
-  serial_report_moisture(&Serial1);
 
   main_button.attachClick(main_button_click);
   main_button.attachDoubleClick(main_button_doubleclick);
@@ -273,8 +272,10 @@ void loop()
   unsigned long nowMillis = millis();
 
   // Warm-up handling
-  if (warming_up && nowMillis > WarmUpDelay)
+  if (warming_up && nowMillis > WarmUpDelay) {
     warming_up = false;
+    serial_report_moisture(&Serial1);
+  }
 
   // Waterning apparatus
   for (int i = 0; i < NFLOWERS; i++)
