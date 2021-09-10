@@ -4,6 +4,7 @@
 #include "RTClib.h"
 #include "OneButton.h"
 #include "SerialCommands.h"
+#include "SimpleKalmanFilter.h"
 
 // Seems to be 132x64 SH1106 actually.
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE);    // I2C
@@ -17,11 +18,15 @@ const char RtcLostMsg[] PROGMEM =    "RTC lost memory!";
 
 bool rtc_inaccurate;
 
+// The parameters are chosen rather arbitrarily.
+SimpleKalmanFilter moisture_filter(5, 5, 0.01);
+
 #define NFLOWERS  4
 struct flower
 {
-  int moisture_raw;         // current moisture level
-  byte moisture_cur;        // current moisture level
+  int moisture_raw;         // current moisture level, raw ADC reading
+  byte moisture_conv;       // current moisture level, mapped to 0..100 % range
+  byte moisture_cur;        // current moisture level, smoothed with the Kalman filter
   byte moisture_max;        // maximum moisture level seen during current watering session
   bool watering;            // are we in a watering session right now ?
   bool force_watering_start;
@@ -289,8 +294,7 @@ void loop()
           draw_time();
           break;
         case DM_TECHNICAL:
-          draw_raw_readings();
-          draw_debug();
+          draw_technical();
           break;
       };
     } while (u8g.nextPage());
@@ -338,7 +342,8 @@ void update_moisture(byte flower_id)
     normalized = 0;
   else if (normalized > 100)
     normalized = 100;
-  flower->moisture_cur = normalized;
+  flower->moisture_conv = normalized;
+  flower->moisture_cur = moisture_filter.updateEstimate(flower->moisture_conv);
   flower->last_sensor_update = millis();
 }
 
@@ -559,7 +564,7 @@ void draw_moisture(void)
   }
 }
 
-void draw_raw_readings(void)
+void draw_technical(void)
 {
   const byte x_offset = 2;
 
@@ -577,17 +582,13 @@ void draw_raw_readings(void)
     }
 
     snprintf(small_printf_buf, sizeof(small_printf_buf), "%3d%%",
-      flowers[i].moisture_cur);
+      flowers[i].moisture_conv);
     u8g.drawStr(BitmapWidth * i + 2, 45, small_printf_buf);
 
     snprintf(small_printf_buf, sizeof(small_printf_buf), "%4d",
       flowers[i].moisture_raw);
     u8g.drawStr(BitmapWidth * i + 2, 60, small_printf_buf);
   }
-}
-
-void draw_debug(void)
-{
 }
 
 void serial_report_moisture(Stream *stream)
@@ -733,6 +734,8 @@ void debug_cmd_f(SerialCommands *sender)
 
   s->print("raw: ");
   s->print(flower->moisture_raw);
+  s->print(" conv: ");
+  s->print(flower->moisture_conv);
   s->print(" cur: ");
   s->print(flower->moisture_cur);
   s->print(" max: ");
