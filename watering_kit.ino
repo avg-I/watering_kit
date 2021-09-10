@@ -363,10 +363,10 @@ bool update_state(byte flower_id)
       flower->last_increase_ts = nowMillis;
 
       print_serial_preamble(&Serial1, nowMillis);
-      Serial1.print(F("Flower "));
+      Serial1.print("Flower ");
       Serial1.print(flower_id, DEC);
-      Serial1.println(F(" needs watering"));
-      Serial1.print(F("Moisture level is "));
+      Serial1.println(" needs watering");
+      Serial1.print("Moisture level is ");
       Serial1.print(flower->moisture_cur, DEC);
       Serial1.println("%");
 
@@ -388,13 +388,13 @@ bool update_state(byte flower_id)
       flower->faulted = true;
 
       print_serial_preamble(&Serial1, nowMillis);
-      Serial1.print(F("Flower "));
+      Serial1.print("Flower ");
       Serial1.print(flower_id, DEC);
-      Serial1.println(F(" moisture level is not increasing for too long"));
-      Serial1.print(F("Current moisture level is "));
+      Serial1.println(" moisture level is not increasing for too long");
+      Serial1.print("Current moisture level is ");
       Serial1.print(flower->moisture_cur, DEC);
       Serial1.println("%");
-      Serial1.print(F("Maximum seen moisture level is "));
+      Serial1.print("Maximum seen moisture level is ");
       Serial1.print(flower->moisture_max, DEC);
       Serial1.println("%");
 
@@ -412,10 +412,10 @@ bool update_state(byte flower_id)
       flower->last_increase_ts = 0;
 
       print_serial_preamble(&Serial1, nowMillis);
-      Serial1.print(F("Flower "));
+      Serial1.print("Flower ");
       Serial1.print(flower_id, DEC);
-      Serial1.println(F(" has been watered"));
-      Serial1.print(F("Moisture level is "));
+      Serial1.println(" has been watered");
+      Serial1.print("Moisture level is ");
       Serial1.print(flower->moisture_cur, DEC);
       Serial1.println("%");
 
@@ -428,10 +428,10 @@ bool update_state(byte flower_id)
         flower->phase_start = nowMillis;
 
         print_serial_preamble(&Serial1, nowMillis);
-        Serial1.print(F("Flower "));
+        Serial1.print("Flower ");
         Serial1.print(flower_id, DEC);
-        Serial1.print(F(" valve "));
-        Serial1.println(flower->valve_open ? F("opened") : F("closed"));
+        Serial1.print(" valve ");
+        Serial1.println(flower->valve_open ? "opened" : "closed");
 
         return true;
       }
@@ -579,7 +579,7 @@ void serial_report_moisture(Stream *stream)
   bool faulted = false;
 
   print_serial_preamble(stream, nowMillis);
-  stream->print(F("Moisture levels:"));
+  stream->print("Moisture levels:");
   for (int f = 0; f < NFLOWERS; f++) {
     stream->print(" ");
     stream->print(flowers[f].moisture_cur, DEC);
@@ -590,7 +590,7 @@ void serial_report_moisture(Stream *stream)
   stream->println("");
 
   if (faulted) {
-    stream->print(F("FALTED:"));
+    stream->print("FALTED:");
     for (int f = 0; f < NFLOWERS; f++) {
       if (flowers[f].faulted) {
         stream->print(" ");
@@ -616,9 +616,9 @@ void rtc_time_cmd_f(SerialCommands *sender)
     if (newTime.isValid())
       set_rtc(newTime);
     else
-      sender->GetSerial()->println(F("invalid time specification"));
+      sender->GetSerial()->println("invalid time specification");
   } else {
-    sender->GetSerial()->println(F("<get|set iso8601-timespec>"));
+    sender->GetSerial()->println("<get|set iso8601-timespec>");
   }
 }
 
@@ -641,7 +641,7 @@ void water_cmd_f(SerialCommands *sender)
   byte flower_id;
 
   if (subcmd == NULL || flower_str == NULL) {
-    sender->GetSerial()->println(F("usage error"));
+    sender->GetSerial()->println("usage error");
     return;
   }
   if (strcmp(subcmd, "on") == 0)
@@ -649,12 +649,12 @@ void water_cmd_f(SerialCommands *sender)
   else if (strcmp(subcmd, "off") == 0)
     on = false;
   else {
-    sender->GetSerial()->println(F("usage error"));
+    sender->GetSerial()->println("usage error");
     return;
   }
   flower_id = atoi(flower_str);
   if (flower_id < 0 || flower_id >= NFLOWERS) {
-    sender->GetSerial()->println(F("usage error"));
+    sender->GetSerial()->println("usage error");
     return;
   }
 
@@ -669,16 +669,16 @@ void clear_cmd_f(SerialCommands *sender)
   for (int i = 0; i < NFLOWERS; i++) {
     if (flowers[i].faulted) {
       flowers[i].faulted = false;
-      Serial1.print(F("Flower "));
+      Serial1.print("Flower ");
       Serial1.print(i, DEC);
-      Serial1.println(F(" fault cleared"));
+      Serial1.println(" fault cleared");
     }
   }
 }
 
 void unknown_cmd(SerialCommands *sender, const char* cmd)
 {
-  sender->GetSerial()->print(F("Unrecognized command ["));
+  sender->GetSerial()->print("Unrecognized command [");
   sender->GetSerial()->print(cmd);
   sender->GetSerial()->println("]");
 }
