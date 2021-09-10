@@ -639,14 +639,30 @@ void show_cmd_f(SerialCommands *sender)
   serial_report_moisture(sender->GetSerial());
 }
 
+byte get_flower(SerialCommands *sender)
+{
+  const char *flower_str = sender->Next();
+  byte flower_id;
+
+  if (flower_str == NULL) {
+    sender->GetSerial()->println("usage error");
+    return (-1);
+  }
+  flower_id = atoi(flower_str);
+  if (flower_id < 0 || flower_id >= NFLOWERS) {
+    sender->GetSerial()->println("usage error");
+    return (-1);
+  }
+  return (flower_id);
+}
+
 void water_cmd_f(SerialCommands *sender)
 {
   const char *subcmd = sender->Next();
-  const char *flower_str = sender->Next();
   bool on;
   byte flower_id;
 
-  if (subcmd == NULL || flower_str == NULL) {
+  if (subcmd == NULL) {
     sender->GetSerial()->println("usage error");
     return;
   }
@@ -658,11 +674,10 @@ void water_cmd_f(SerialCommands *sender)
     sender->GetSerial()->println("usage error");
     return;
   }
-  flower_id = atoi(flower_str);
-  if (flower_id < 0 || flower_id >= NFLOWERS) {
-    sender->GetSerial()->println("usage error");
+
+  flower_id = get_flower(sender);
+  if (flower_id < 0)
     return;
-  }
 
   if (on && !flowers[flower_id].watering)
     flowers[flower_id].force_watering_start = true;
@@ -684,19 +699,11 @@ void clear_cmd_f(SerialCommands *sender)
 
 void fault_cmd_f(SerialCommands *sender)
 {
-  const char *flower_str = sender->Next();
   byte flower_id;
 
-  if (flower_str == NULL) {
-    sender->GetSerial()->println("usage error");
+  flower_id = get_flower(sender);
+  if (flower_id < 0)
     return;
-  }
-  flower_id = atoi(flower_str);
-  if (flower_id < 0 || flower_id >= NFLOWERS) {
-    sender->GetSerial()->println("usage error");
-    return;
-  }
-
   flowers[flower_id].force_fault = true;
 }
 
