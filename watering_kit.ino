@@ -675,9 +675,9 @@ void clear_cmd_f(SerialCommands *sender)
   for (int i = 0; i < NFLOWERS; i++) {
     if (flowers[i].faulted) {
       flowers[i].faulted = false;
-      Serial1.print("Flower ");
-      Serial1.print(i, DEC);
-      Serial1.println(" fault cleared");
+      sender->GetSerial()->print("Flower ");
+      sender->GetSerial()->print(i, DEC);
+      sender->GetSerial()->println(" fault cleared");
     }
   }
 }
