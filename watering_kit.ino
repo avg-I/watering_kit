@@ -19,7 +19,10 @@ const char RtcLostMsg[] PROGMEM =    "RTC lost memory!";
 bool rtc_inaccurate;
 
 // The parameters are chosen rather arbitrarily.
-SimpleKalmanFilter moisture_filter(5, 5, 0.01);
+SimpleKalmanFilter moisture_filter0(5, 5, 0.01);
+SimpleKalmanFilter moisture_filter1(5, 5, 0.01);
+SimpleKalmanFilter moisture_filter2(5, 5, 0.01);
+SimpleKalmanFilter moisture_filter3(5, 5, 0.01);
 
 #define NFLOWERS  4
 struct flower
@@ -41,6 +44,7 @@ struct flower
   byte sensor_pin;
   int sensor_min_val;
   int sensor_max_val;
+  SimpleKalmanFilter *filter;
 } flowers[NFLOWERS];
 
 // Watering is done by periodically opening and closing a valve.
@@ -185,21 +189,25 @@ void setup()
   flowers[0].sensor_pin = A0;
   flowers[0].sensor_min_val = 247; // based on calibration
   flowers[0].sensor_max_val = 585; // based on calibration
+  flowers[0].filter = &moisture_filter0;
 
   flowers[1].relay_pin = 8;
   flowers[1].sensor_pin = A1;
   flowers[1].sensor_min_val = 249; // based on calibration
   flowers[1].sensor_max_val = 586; // based on calibration
+  flowers[1].filter = &moisture_filter1;
 
   flowers[2].relay_pin = 9;
   flowers[2].sensor_pin = A2;
   flowers[2].sensor_min_val = 245; // based on calibration
   flowers[2].sensor_max_val = 586; // based on calibration
+  flowers[2].filter = &moisture_filter2;
 
   flowers[3].relay_pin = 10;
   flowers[3].sensor_pin = A3;
   flowers[3].sensor_min_val = 249; // based on calibration
   flowers[3].sensor_max_val = 582; // based on calibration
+  flowers[3].filter = &moisture_filter3;
 
   // declare relays as outputs
   for (int i = 0; i < NFLOWERS; i++) {
@@ -343,7 +351,7 @@ void update_moisture(byte flower_id)
   else if (normalized > 100)
     normalized = 100;
   flower->moisture_conv = normalized;
-  flower->moisture_cur = moisture_filter.updateEstimate(flower->moisture_conv);
+  flower->moisture_cur = flower->filter->updateEstimate(flower->moisture_conv);
   flower->last_sensor_update = millis();
 }
 
@@ -744,7 +752,8 @@ void debug_cmd_f(SerialCommands *sender)
   s->print(flower->watering ? "yes" : "no");
   s->print(" open: ");
   s->print(flower->valve_open ? "yes" : "no");
-  s->print(" faulted: ");
+  s->println(" faulted: ");
+
   s->print(flower->faulted ? "yes" : "no");
   s->print(" update: ");
   s->print(flower->last_sensor_update);
@@ -767,7 +776,7 @@ void debug_cmd_f(SerialCommands *sender)
   s->print("pump, active: ");
   s->print(pump_active ? "yes" : "no");
   s->print(" waiting: ");
-  s->print(pump_waiting ? "yes" : "no");
+  s->println(pump_waiting ? "yes" : "no");
 }
 
 void unknown_cmd(SerialCommands *sender, const char* cmd)
