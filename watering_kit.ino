@@ -26,6 +26,7 @@ struct flower
   bool force_watering_stop;
   bool valve_open;          // are we actively watering (valve is open) ?
   bool faulted;             // have we detected a fault either with sensor or valve or pipe ?
+  bool force_fault;
   unsigned long last_sensor_update;// timestamp of last moisture level check
   unsigned long last_increase_ts;  // timestamp of the last increase in moisture level since watering started
   unsigned long phase_start; // timestamp of when we last opened or closed valve during current watering session
@@ -105,11 +106,13 @@ void refresh_cmd_f(SerialCommands *sender);
 void show_cmd_f(SerialCommands *sender);
 void water_cmd_f(SerialCommands *sender);
 void clear_cmd_f(SerialCommands *sender);
+void fault_cmd_f(SerialCommands *sender);
 SerialCommand rtc_time_cmd("rtc_time", rtc_time_cmd_f);
 SerialCommand refresh_cmd("refresh", refresh_cmd_f);
 SerialCommand show_cmd("show", show_cmd_f);
 SerialCommand water_cmd("water", water_cmd_f);
 SerialCommand clear_cmd("clear", clear_cmd_f);
+SerialCommand fault_cmd("fault", fault_cmd_f);
 
 char small_printf_buf[12];
 
@@ -217,6 +220,7 @@ void setup()
   serial_commands.AddCommand(&show_cmd);
   serial_commands.AddCommand(&water_cmd);
   serial_commands.AddCommand(&clear_cmd);
+  serial_commands.AddCommand(&fault_cmd);
 
   byte rtc_check_val = RTC.readnvram(RtcMagicReg);
   if (!RTC.isrunning() || rtc_check_val != RtcMagicVal) {
@@ -380,12 +384,14 @@ bool update_state(byte flower_id)
     if (flower->moisture_cur > flower->moisture_max) {
       flower->moisture_max = flower->moisture_cur;
       flower->last_increase_ts = nowMillis;
-    } else if (nowMillis - flower->last_increase_ts > FaultTimeout) {
+    } else if (nowMillis - flower->last_increase_ts > FaultTimeout ||
+      flower->force_fault) {
       flower->watering = false;
       flower->valve_open = false;
       flower->last_increase_ts = 0;
       flower->phase_start = 0;
       flower->faulted = true;
+      flower->force_fault = false;
 
       print_serial_preamble(&Serial1, nowMillis);
       Serial1.print("Flower ");
@@ -674,6 +680,24 @@ void clear_cmd_f(SerialCommands *sender)
       Serial1.println(" fault cleared");
     }
   }
+}
+
+void fault_cmd_f(SerialCommands *sender)
+{
+  const char *flower_str = sender->Next();
+  byte flower_id;
+
+  if (flower_str == NULL) {
+    sender->GetSerial()->println("usage error");
+    return;
+  }
+  flower_id = atoi(flower_str);
+  if (flower_id < 0 || flower_id >= NFLOWERS) {
+    sender->GetSerial()->println("usage error");
+    return;
+  }
+
+  flowers[flower_id].force_fault = true;
 }
 
 void unknown_cmd(SerialCommands *sender, const char* cmd)
