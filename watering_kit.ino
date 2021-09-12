@@ -50,30 +50,36 @@ struct flower
 // Watering is done by periodically opening and closing a valve.
 // The pause is to let the water soak into the soil.
 // Otheriwse we could be pumping water too fast and put in too much of it
-// before a change in the moisture level is detected.
+// before the change in the moisture level is detected.
 // So, we pump the water in short bursts with longer pauses between them.
 // The standard pump in the kit has flow of 2 liters per minute (120 l/h).
-// I want to emulate 1 l/h, so the duty cycle should be 1/120.
+// I want to emulate 0.5 l/h, so the duty cycle should be 1/240.
 // Also, I want to limit a single portion of water to no more than 50 ml.
 // ActiveWateringPeriod and PauseWateringPeriod are derived from these constraints.
 // NB: these calculations assume that the flow of water is unrestricted.
-// If there are any drippers, etc, the the flow would be different.
+// If there are any drippers, etc, then the flow would be different.
+
+const unsigned long PumpFlow = 120000;			// milliliters per hour
+const unsigned long FloweFlow = 500;  			// ml/h
+const unsigned long SingleShotVolume = 50;		// ml
+const unsigned long MS_IN_HOUR = 3600UL * 1000;	// milliseconds in one hour
 
 // How long to have a valve open, milliseconds.
-// Equivalent to ~ 50 ml at 120 l/h (33 ml/s).
+//
 // NB: this does not really account for several valves being open at the same time.
 // In practice that should be rare and it should only result in slower watering.
 // The pots should still get as much water as they need to reach the moisture levels.
 // NB: need to use unsigned long here as UINT_MAX is just 2^16.
-const unsigned long ActiveWateringPeriod = 1500;
+const unsigned long ActiveWateringPeriod = MS_IN_HOUR * SingleShotVolume / PumpFlow;	// ms
 
 // How long to have a valve closed before opening again, milliseconds.
-// 1/120 duty cycle to emulate 1 l/h flow.
-const unsigned long PauseWateringPeriod = 180000 - ActiveWateringPeriod;
+// The duty cycle is FlowerFlow / PumpFlow.
+const unsigned long FullWateringPeriod = ActiveWateringPeriod * PumpFlow / FloweFlow;	// ms
+const unsigned long PauseWateringPeriod = FullWateringPeriod - ActiveWateringPeriod;
 
 // If, while watering, moisture level does not increase for this long, then declare a fault.
 // The value is calculated for 200 ml at (emulated) 1 l/h resulting in 12 minutes.
-const unsigned long FaultTimeout = 720000;
+const unsigned long FaultTimeout = MS_IN_HOUR * 200 / FloweFlow;
 
 const unsigned long IdleUpdatePeriod = 60000;    // period between checking moisture levels while not watering, milliseconds
 const unsigned long ActiveUpdatePeriod = 1000;   // period between checking moisture levels while watering, milliseconds
