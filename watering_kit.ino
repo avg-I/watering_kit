@@ -86,7 +86,7 @@ const int PumpStartDelay = 20;                  // how long to wait after openin
 bool pump_active;
 bool pump_waiting;								// pump is active but PumpStartDelay hasn't passed yet
 
-const unsigned long WarmUpDelay = 120000;       // time for initial "warming up" of sensor readings, etc
+const unsigned long WarmUpDelay = 40000;       // time for initial "warming up" of sensor readings, etc
 bool warming_up;
 
 // Watering hysteresis.
