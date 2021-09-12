@@ -28,8 +28,8 @@ SimpleKalmanFilter moisture_filter3(5, 5, 0.01);
 struct flower
 {
   int moisture_raw;         // current moisture level, raw ADC reading
-  byte moisture_conv;       // current moisture level, mapped to 0..100 % range
-  byte moisture_cur;        // current moisture level, smoothed with the Kalman filter
+  int moisture_smooth;      // raw moisture level, smoothed with the Kalman filter
+  byte moisture_cur;        // current smoothed moisture level, mapped to 0..100 % range
   byte moisture_max;        // maximum moisture level seen during current watering session
   bool watering;            // are we in a watering session right now ?
   bool force_watering_start;
@@ -361,14 +361,14 @@ void update_moisture(byte flower_id)
   struct flower *flower = &flowers[flower_id];
 
   flower->moisture_raw = analogRead(flower->sensor_pin);
+  flower->moisture_smooth = flower->filter->updateEstimate(flower->moisture_raw);
 
-  int normalized = map(flower->moisture_raw, flower->sensor_max_val, flower->sensor_min_val, 0, 100);
+  int normalized = map(flower->moisture_smooth, flower->sensor_max_val, flower->sensor_min_val, 0, 100);
   if (normalized < 0)
     normalized = 0;
   else if (normalized > 100)
     normalized = 100;
-  flower->moisture_conv = normalized;
-  flower->moisture_cur = flower->filter->updateEstimate(flower->moisture_conv);
+  flower->moisture_cur = normalized;
   flower->last_sensor_update = millis();
 }
 
@@ -606,8 +606,8 @@ void draw_technical(void)
       u8g.drawStr(BitmapWidth * i + 2, 30, small_printf_buf);
     }
 
-    snprintf(small_printf_buf, sizeof(small_printf_buf), "%3d%%",
-      flowers[i].moisture_conv);
+    snprintf(small_printf_buf, sizeof(small_printf_buf), "%4d",
+      flowers[i].moisture_smooth);
     u8g.drawStr(BitmapWidth * i + 2, 45, small_printf_buf);
 
     snprintf(small_printf_buf, sizeof(small_printf_buf), "%4d",
@@ -759,8 +759,8 @@ void debug_cmd_f(SerialCommands *sender)
 
   s->print("raw: ");
   s->print(flower->moisture_raw);
-  s->print(" conv: ");
-  s->print(flower->moisture_conv);
+  s->print(" smoothed: ");
+  s->print(flower->moisture_smooth);
   s->print(" cur: ");
   s->print(flower->moisture_cur);
   s->print(" max: ");
