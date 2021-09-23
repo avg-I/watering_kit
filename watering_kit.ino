@@ -396,10 +396,19 @@ bool update_state(byte flower_id)
 
   unsigned long nowMillis = millis();
 
+  // Each flower is assigned a share of a minute where it can
+  // open its valve.  This is to avoid multiple valves being
+  // open at the same as that affects accuracy of water delivery
+  // estimates.
+  const byte SlotSeconds = 5;
+  byte seconds = (nowMillis / 1000) % (NFLOWERS * SlotSeconds);
+  byte slot = seconds / SlotSeconds;
+  bool my_time = flower_id == slot;
+
   if (!flower->watering) {
-    // start watering if too dry
-    if (flower->moisture_cur < MoistureLowThreshold ||
-        flower->force_watering_start) {
+    // Start watering if too dry (and it's our time slot).
+    if ((flower->moisture_cur < MoistureLowThreshold ||
+        flower->force_watering_start) && my_time) {
       flower->watering = true;
       flower->force_watering_start = false;
       flower->valve_open = true;
@@ -468,9 +477,10 @@ bool update_state(byte flower_id)
 
       return true;
     } else {
-      // if the current phase is over, switch to the other phase
+      // If the current phase is over, switch to the other phase.
+      // The valve can be shut at any time but open only during its time slot.
       unsigned long phase_duration = flower->valve_open ? ActiveWateringPeriod : PauseWateringPeriod;
-      if (nowMillis - flower->phase_start >= phase_duration) {
+      if (nowMillis - flower->phase_start >= phase_duration && (flower->valve_open || my_time)) {
         flower->valve_open = !flower->valve_open;
         flower->phase_start = nowMillis;
 
