@@ -356,19 +356,24 @@ void print_serial_preamble(Stream *stream, unsigned long nowMillis)
       stream->print("] ");
 }
 
+byte map_moisture(int v, int min_v, int max_v)
+{
+  const unsigned long scale_factor = 1024UL * 1024;
+
+  if (v < min_v)
+    v = min_v;
+  else if (v > max_v)
+    v = max_v;
+  return map(scale_factor / v, scale_factor / max_v, scale_factor / min_v, 0, 100);
+}
+
 void update_moisture(byte flower_id)
 {
   struct flower *flower = &flowers[flower_id];
 
   flower->moisture_raw = analogRead(flower->sensor_pin);
   flower->moisture_smooth = flower->filter->updateEstimate(flower->moisture_raw);
-
-  int normalized = map(flower->moisture_smooth, flower->sensor_max_val, flower->sensor_min_val, 0, 100);
-  if (normalized < 0)
-    normalized = 0;
-  else if (normalized > 100)
-    normalized = 100;
-  flower->moisture_cur = normalized;
+  flower->moisture_cur = map_moisture(flower->moisture_smooth, flower->sensor_min_val, flower->sensor_max_val);
   flower->last_sensor_update = millis();
 }
 
