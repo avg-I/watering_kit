@@ -53,15 +53,17 @@ struct flower
 // before the change in the moisture level is detected.
 // So, we pump the water in short bursts with longer pauses between them.
 // The standard pump in the kit has flow of 2 liters per minute (120 l/h).
-// I want to emulate 0.20 l/h, so the duty cycle should be 1/600.
-// Also, I want to limit a single portion of water to no more than 50 ml.
+// Drippers limit it to approximately 24 l/h.
+// I want to emulate 100 ml/h.
+// Also, I want to limit a single portion of water to no more than 20 ml
+// (when using drippers).
 // ActiveWateringPeriod and PauseWateringPeriod are derived from these constraints.
 // NB: these calculations assume that the flow of water is unrestricted.
 // If there are any drippers, etc, then the flow would be different.
 
-const unsigned long PumpFlow = 120000;			// milliliters per hour
-const unsigned long FloweFlow = 200;  			// ml/h
-const unsigned long SingleShotVolume = 50;	// ml
+const unsigned long PumpFlow = 24000;			// milliliters per hour
+const unsigned long FloweFlow = 100;  			// ml/h
+const unsigned long SingleShotVolume = 20;	    // ml
 const unsigned long MS_IN_HOUR = 3600UL * 1000;	// milliseconds in one hour
 
 // How long to have a valve open, milliseconds.
